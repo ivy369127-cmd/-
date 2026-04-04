@@ -7,84 +7,117 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>旅行小助手</title>
     <style>
+        /* ☕ 溫柔奶茶手帳風配色 + 寶寶藍跳色 */
         :root { 
-            --primary: #007AFF; 
-            --primary-light: #5AC8FA; 
-            --bg: #F2F2F7; 
-            --card: #FFFFFF; 
-            --text: #1C1C1E; 
-            --text-muted: #8E8E93;
-            --danger: #FF3B30;
+            --bg-cream: #FDF9F5;      /* 奶油香草底色 */
+            --dark-cocoa: #8C6A53;    /* 深焦糖色 (邊框、主字體) */
+            --milk-tea: #C19A80;      /* 奶茶色 (按鈕、標籤) */
+            --card-bg: #FFFFFF;       /* 卡片純白 */
+            --accent-red: #D98C85;    /* 豆沙玫瑰粉 (大標題、刪除) */
+            --accent-blue: #A3C5D1;   /* 寶寶藍 (價格小跳色) */
+            --text-muted: #A6968E;    /* 柔和的次要灰字 */
+            --price-bg: #FCF7F3;      /* 輸入框微暖底色 */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 100px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-cream); color: var(--dark-cocoa); padding-bottom: 100px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
         
         .page { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* 頂部標題 */
         header { 
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: var(--text); padding: 20px 20px 15px; font-size: 1.5rem; font-weight: 800; 
+            background: var(--card-bg);
+            color: var(--dark-cocoa); padding: 20px 20px 15px; font-size: 1.4rem; font-weight: 900; 
             position: sticky; top: 0; z-index: 50; text-align: center;
-            border-bottom: 0.5px solid rgba(0,0,0,0.1);
+            border-bottom: 2px solid var(--dark-cocoa);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 0 rgba(140, 106, 83, 0.08);
         }
         
+        /* 手帳風卡片 (粗邊框 + 硬陰影) */
         .card { 
-            background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 16px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: none;
+            background: var(--card-bg); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; 
+            border: 2px solid var(--dark-cocoa);
+            box-shadow: 2px 3px 0px rgba(140, 106, 83, 0.15); 
+            position: relative;
         }
         
-        .stat-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 1.05rem; }
-        .stat-label { color: var(--text-muted); font-weight: 500; }
-        .stat-value { color: var(--text); font-weight: 700; }
+        /* 數據區塊：修改為緊湊排列 */
+        .stat-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 1.05rem; }
+        .stat-label { color: var(--dark-cocoa); font-weight: 700; margin-right: 12px; }
+        .stat-value { color: var(--accent-red); font-weight: 900; font-size: 1.15rem; }
         
-        .price-box { background: #F2F2F7; padding: 16px; border-radius: 16px; margin-top: 16px; text-align: right; border-left: 4px solid var(--primary); }
-        .price-jpy { color: var(--primary); font-size: 1.8rem; font-weight: 800; line-height: 1.2; display: block; margin-bottom: 2px;}
-        .price-twd { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; display: block;}
-        
+        /* 底部導覽列 */
         .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            position: fixed; bottom: 0; width: 100%; background: var(--card-bg);
             display: flex; justify-content: space-around; 
             padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); 
-            border-top: 0.5px solid rgba(0,0,0,0.1); z-index: 100;
+            border-top: 2px solid var(--dark-cocoa); z-index: 100;
         }
-        .nav-item { text-align: center; font-size: 0.7rem; color: var(--text-muted); cursor: pointer; flex: 1; transition: color 0.2s; font-weight: 500; }
-        .nav-item.active { color: var(--primary); font-weight: 700; }
+        .nav-item { text-align: center; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; flex: 1; transition: color 0.2s; font-weight: 700; }
+        .nav-item.active { color: var(--accent-red); font-weight: 900; }
         .nav-icon { font-size: 1.6rem; display: block; margin-bottom: 4px; transition: transform 0.2s; }
         .nav-item.active .nav-icon { transform: scale(1.15); }
 
+        /* 🔘 按鈕樣式 */
         button { 
-            background: var(--primary); color: white; border: none; padding: 14px 20px; 
-            border-radius: 14px; font-weight: 700; font-size: 1rem; cursor: pointer; 
-            transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+            background: var(--dark-cocoa); color: white; border: 2px solid var(--dark-cocoa); padding: 14px 20px; 
+            border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; 
+            transition: transform 0.1s; box-shadow: 2px 3px 0 rgba(140, 106, 83, 0.15);
         }
-        button:active { transform: scale(0.96); opacity: 0.9; }
-        .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); box-shadow: none; }
-        .btn-small { background: #F2F2F7; color: var(--text); padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; box-shadow: none; font-weight: 600; }
-        .btn-small.danger { background: #FFEEEE; color: var(--danger); }
-        .map-btn { background: #E5F1FF; color: var(--primary); width: 100%; margin-top: 12px; box-shadow: none; }
-        .map-route-btn { background: #FFF0F5; color: #D81B60; width: 100%; margin-top: 12px; box-shadow: none; }
+        button:active { transform: translate(2px, 2px); box-shadow: 0 1px 0 rgba(140, 106, 83, 0.15); }
+        .btn-outline { background: var(--card-bg); color: var(--dark-cocoa); border: 2px solid var(--dark-cocoa); }
         
+        /* ✏️ 精緻的右側小圖示按鈕 (編輯/刪除) */
+        .icon-btn {
+            background: transparent; color: var(--text-muted); border: 2px solid transparent; 
+            border-radius: 8px; width: 36px; height: 36px; padding: 0;
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.1rem; box-shadow: none; transition: 0.2s; font-weight: bold;
+        }
+        .icon-btn:active { background: var(--price-bg); border-color: var(--dark-cocoa); color: var(--dark-cocoa); transform: scale(0.95); }
+        .icon-btn.danger:active { background: #FFF0F0; border-color: var(--accent-red); color: var(--accent-red); }
+
+        .map-btn { background: var(--dark-cocoa); color: white; width: 100%; margin-top: 12px; border-radius: 8px; padding: 12px; font-size: 0.95rem; }
+        .map-route-btn { background: var(--accent-red); color: white; width: 100%; margin-top: 12px; border-radius: 8px; padding: 12px; border-color: var(--accent-red); font-size: 0.95rem; }
+        
+        /* 📝 輸入框 */
         input, select, textarea { 
             width: 100%; padding: 14px 16px; margin: 6px 0 16px 0; 
-            border: none; background: #F2F2F7; border-radius: 12px; 
-            font-size: 1rem; color: var(--text); outline: none; transition: background 0.2s;
+            border: 2px solid var(--dark-cocoa); background: var(--card-bg); border-radius: 12px; 
+            font-size: 1rem; color: var(--dark-cocoa); outline: none; font-weight: 600;
         }
-        input:focus, select:focus, textarea:focus { background: #E5E5EA; }
-        input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--primary); cursor: pointer; margin: 0; border-radius: 6px; }
+        input:focus, select:focus, textarea:focus { background: var(--price-bg); }
         
-        .strikethrough { opacity: 0.5; filter: grayscale(50%); transition: all 0.3s; }
+        /* 勾選框優化：確保有間距且不變形 */
+        input[type="checkbox"] { 
+            width: 24px; height: 24px; accent-color: var(--dark-cocoa); cursor: pointer; 
+            margin: 0; border-radius: 6px; border: 2px solid var(--dark-cocoa); 
+            flex-shrink: 0;
+        }
+        
+        .strikethrough { opacity: 0.5; filter: grayscale(40%); transition: all 0.3s; }
         .strikethrough span, .strikethrough b, .strikethrough p { text-decoration: line-through; }
-        .check-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; }
-        .itinerary-item { border-left: 5px solid var(--primary); padding-left: 16px; margin-bottom: 16px; }
         
-        .img-thumbnail { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; margin-top: 10px; display: block; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal img { max-width: 90%; max-height: 85%; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        /* 移除 padding，讓 card 自己去控制留白，解決黏在一起的問題 */
+        .check-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+        
+        /* ⏰ 行程時間軸 */
+        .timeline-container { display: flex; margin-bottom: 20px; align-items: stretch; }
+        .timeline-left { display: flex; flex-direction: column; align-items: center; margin-right: 15px; width: 50px; }
+        .timeline-time { background: var(--bg-cream); border: 2px solid var(--dark-cocoa); border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; color: var(--dark-cocoa); z-index: 2; margin-top: 10px; }
+        .timeline-line { flex: 1; border-left: 3px dashed var(--milk-tea); margin-top: 5px; margin-bottom: -30px; z-index: 1; }
+        .timeline-card { flex: 1; margin-bottom: 0; }
+
+        /* 🛒 購物清單特定標籤 */
+        .section-badge { background: var(--milk-tea); color: white; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 1.1rem; border: 2px solid var(--dark-cocoa); margin: 10px 0 20px; box-shadow: 2px 3px 0 rgba(140,106,83,0.15); display: inline-block; width: 100%; text-align: center;}
+        .section-badge-done { background: var(--price-bg); color: var(--dark-cocoa); }
+        
+        /* 圖片處理 */
+        .img-thumbnail { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: block; cursor: pointer; border: 2px solid var(--dark-cocoa); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(140, 106, 83, 0.9); z-index: 9999; justify-content: center; align-items: center; }
+        .modal img { max-width: 90%; max-height: 85%; border-radius: 16px; border: 4px solid var(--bg-cream); }
     </style>
 </head>
 <body>
@@ -97,26 +130,26 @@
 
     <div id="home" class="page active">
         <div class="card">
-            <h2 style="margin-bottom: 20px; font-weight: 800; font-size: 1.4rem;">📊 今日進度</h2>
+            <h2 style="margin-bottom: 20px; font-weight: 900; font-size: 1.4rem;">📊 今日進度</h2>
             <div class="stat-item"><span class="stat-label">🎒 行李準備</span><span class="stat-value" id="stat-luggage">0%</span></div>
             <div class="stat-item"><span class="stat-label">📅 行程完成</span><span class="stat-value" id="stat-iti-percent">0%</span></div>
             <div class="stat-item"><span class="stat-label">🛒 購物清單</span><span class="stat-value">已買 <span id="stat-shopping">0</span> / <span id="stat-shopping-total">0</span></span></div>
             
-            <div style="margin-top: 20px; padding: 20px; background: #F2F2F7; border-radius: 16px;">
-                <p style="color: var(--primary); font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">📍 匯率參考</p>
-                <p style="font-size: 1.6rem; font-weight: 800;">1 JPY = <span id="stat-rate">0.21</span> TWD</p>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;" id="rate-sync-info">自動同步中...</p>
+            <div style="margin-top: 20px; padding: 16px; background: var(--price-bg); border-radius: 12px; border: 2px solid var(--dark-cocoa);">
+                <p style="color: var(--accent-blue); font-size: 0.95rem; font-weight: 900; margin-bottom: 4px;">📍 匯率參考</p>
+                <p style="font-size: 1.6rem; font-weight: 900;">1 JPY = <span id="stat-rate">0.21</span> TWD</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; font-weight: 600;" id="rate-sync-info">自動同步中...</p>
             </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <button onclick="nav('itinerary')">查看行程</button>
-            <button onclick="nav('shopping')" class="btn-outline">購物清單</button>
+        <div style="display: flex; gap: 15px;">
+            <button onclick="nav('itinerary')" style="flex: 1;">查看行程</button>
+            <button onclick="nav('shopping')" class="btn-outline" style="flex: 1;">購物清單</button>
         </div>
     </div>
 
     <div id="itinerary" class="page">
-        <div class="card">
-            <h3 style="margin-bottom: 16px; font-weight: 700;">📝 加入新行程</h3>
+        <div class="card" style="background: var(--price-bg);">
+            <h3 style="margin-bottom: 16px; font-weight: 900;">📝 加入新行程</h3>
             <div style="display: flex; gap: 10px;">
                 <select id="new-iti-day" style="flex: 1;">
                     <option value="Day 1">Day 1</option><option value="Day 2">Day 2</option>
@@ -135,8 +168,8 @@
             <button onclick="addItinerary()" style="width: 100%;">新增行程</button>
         </div>
         
-        <div id="edit-iti-form-container" style="display: none; background: #fff; padding: 20px; border-radius: 20px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,122,255,0.1);">
-            <h3 style="margin-bottom: 16px;">編輯行程</h3>
+        <div id="edit-iti-form-container" style="display: none; background: var(--price-bg); padding: 20px; border-radius: 16px; border: 2px solid var(--dark-cocoa); margin-bottom: 20px; box-shadow: 2px 3px 0 rgba(140,106,83,0.15);">
+            <h3 style="margin-bottom: 16px; font-weight: 900;">編輯行程</h3>
             <input type="hidden" id="edit-iti-id">
             <div style="display: flex; gap: 10px;">
                 <select id="edit-iti-day" style="flex: 1;">
@@ -163,8 +196,8 @@
     </div>
 
     <div id="luggage" class="page">
-        <div class="card">
-            <h3 style="margin-bottom: 16px; font-weight: 700;">🎒 新增行李</h3>
+        <div class="card" style="background: var(--price-bg);">
+            <h3 style="margin-bottom: 16px; font-weight: 900;">🎒 新增行李</h3>
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                 <input type="text" id="new-luggage" placeholder="新增行李..." style="margin:0; flex:1.5;">
                 <input type="text" id="new-luggage-note" placeholder="備註 (選填)" style="margin:0; flex:1;">
@@ -172,8 +205,8 @@
             <button onclick="addLuggage()" style="width: 100%;">添加行李</button>
         </div>
 
-        <div id="edit-lug-form-container" style="display: none; background: #fff; padding: 20px; border-radius: 20px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,122,255,0.1);">
-            <h3 style="margin-bottom: 16px;">編輯行李</h3>
+        <div id="edit-lug-form-container" style="display: none; background: var(--price-bg); padding: 20px; border-radius: 16px; border: 2px solid var(--dark-cocoa); margin-bottom: 20px; box-shadow: 2px 3px 0 rgba(140,106,83,0.15);">
+            <h3 style="margin-bottom: 16px; font-weight: 900;">編輯行李</h3>
             <input type="hidden" id="edit-lug-id">
             <input type="text" id="edit-lug-name" placeholder="行李名稱">
             <input type="text" id="edit-lug-note" placeholder="備註 (選填)">
@@ -187,15 +220,15 @@
     </div>
 
     <div id="shopping" class="page">
-        <button onclick="openAddForm()" style="width: 100%; margin-bottom: 16px;">＋ 新增商品</button>
+        <button onclick="openAddForm()" style="width: 100%; margin-bottom: 20px;">＋ 新增商品</button>
         
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; background: #E5E5EA; padding: 4px; border-radius: 16px;">
-            <button id="btn-filter-all" onclick="setShopFilter('all')" style="flex: 1; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 10px;">總清單</button>
-            <button id="btn-filter-unpurchased" onclick="setShopFilter('unpurchased')" style="flex: 1; background: transparent; color: var(--text-muted); box-shadow: none; border-radius: 12px; padding: 10px;">尚未購買</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+            <button id="btn-filter-all" onclick="setShopFilter('all')" style="flex: 1;">總清單</button>
+            <button id="btn-filter-unpurchased" onclick="setShopFilter('unpurchased')" class="btn-outline" style="flex: 1; background: var(--card-bg);">尚未購買</button>
         </div>
 
-        <div id="edit-form-container" style="display: none; background: #fff; padding: 20px; border-radius: 20px; border: 2px solid var(--primary); margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,122,255,0.1);">
-            <h3 id="form-title" style="margin-bottom: 16px;">新增商品</h3>
+        <div id="edit-form-container" style="display: none; background: var(--price-bg); padding: 20px; border-radius: 16px; border: 2px solid var(--dark-cocoa); margin-bottom: 24px; box-shadow: 2px 3px 0 rgba(140,106,83,0.15);">
+            <h3 id="form-title" style="margin-bottom: 16px; font-weight: 900;">新增商品</h3>
             <input type="hidden" id="edit-id">
             <input type="text" id="edit-name" placeholder="名稱">
             <div style="display: flex; gap: 10px;">
@@ -203,8 +236,8 @@
                 <input type="text" id="edit-shop" placeholder="購買地點" style="flex:1;">
             </div>
             <input type="text" id="edit-note" placeholder="備註 (選填)">
-            <label style="font-size: 0.9rem; color: var(--text-muted); display: block; margin: 4px 0 8px 4px;">加入/更新圖片 (選填)</label>
-            <input type="file" id="edit-image" accept="image/*" style="padding: 12px; background: white; border: 1px dashed #ccc;">
+            <label style="font-size: 0.95rem; color: var(--dark-cocoa); font-weight: 700; display: block; margin: 4px 0 8px 4px;">加入圖片 (選填)</label>
+            <input type="file" id="edit-image" accept="image/*" style="padding: 12px; background: white; border: 2px dashed var(--dark-cocoa);">
             
             <div style="display: flex; gap: 10px; margin-top: 16px;">
                 <button onclick="document.getElementById('edit-form-container').style.display='none'" class="btn-outline" style="flex: 1;">取消</button>
@@ -217,31 +250,31 @@
 
     <div id="settings" class="page">
         <div class="card">
-            <h3 style="margin-bottom:20px; font-weight: 800;">⚙️ 匯率設定</h3>
+            <h3 style="margin-bottom:20px; font-weight: 900;">⚙️ 匯率設定</h3>
             
-            <label style="font-size: 0.9rem; color: var(--text-muted); display: block; margin: 0 0 8px 4px;">手動設定匯率 (1 JPY = ? TWD)</label>
+            <label style="font-size: 0.95rem; color: var(--dark-cocoa); font-weight: 700; display: block; margin: 0 0 8px 4px;">手動設定匯率 (1 JPY = ? TWD)</label>
             <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                 <input type="number" step="0.0001" id="manual-rate-input" placeholder="例如: 0.215" style="margin: 0; flex: 2;">
                 <button onclick="saveManualRate()" style="flex: 1;">儲存</button>
             </div>
 
-            <div style="text-align: center; margin: 16px 0; color: #C7C7CC; font-size: 0.85rem; font-weight: 600;">— 或 —</div>
+            <div style="text-align: center; margin: 16px 0; color: var(--text-muted); font-size: 0.85rem; font-weight: 700;">— 或 —</div>
             
-            <button id="update-rate-btn" onclick="fetchLiveRate()" class="btn-outline" style="width: 100%; margin-bottom: 10px;">🌐 從網路獲取最新匯率</button>
+            <button id="update-rate-btn" onclick="fetchLiveRate()" class="btn-outline" style="width: 100%; margin-bottom: 16px; background: var(--card-bg);">🌐 從網路獲取最新匯率</button>
             
-            <p id="settings-rate-display" style="text-align: center; font-size: 0.9rem; color: var(--primary); font-weight: 700; margin-bottom: 24px; background: #E5F1FF; padding: 10px; border-radius: 12px;"></p>
+            <p id="settings-rate-display" style="text-align: center; font-size: 0.95rem; color: var(--dark-cocoa); font-weight: 900; margin-bottom: 10px; background: var(--price-bg); padding: 14px; border-radius: 12px; border: 2px solid var(--dark-cocoa);"></p>
         </div>
 
         <div class="card">
-            <h3 style="margin-bottom:20px; font-weight: 800;">💾 資料備份</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; margin-left: 4px;">把下方的亂碼複製起來傳到 LINE，換手機或電腦時貼上就能還原所有資料。</p>
-            <textarea id="backup-data" placeholder="備份碼顯示於此..." style="height: 80px; font-size: 0.8rem; line-height: 1.4;"></textarea>
+            <h3 style="margin-bottom:20px; font-weight: 900;">💾 資料備份</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px; margin-left: 4px; font-weight: 600;">把下方的亂碼複製起來傳到 LINE，換手機或電腦時貼上就能還原所有資料。</p>
+            <textarea id="backup-data" placeholder="備份碼顯示於此..." style="height: 80px; font-size: 0.85rem; line-height: 1.4; background: var(--price-bg);"></textarea>
             <div style="display: flex; gap: 10px; margin-bottom: 24px;">
-                <button onclick="exportData()" style="flex:1; background: #34C759; box-shadow: 0 4px 12px rgba(52,199,89,0.2);">導出備份碼</button>
-                <button onclick="importData()" style="flex:1; background: #FF9500; box-shadow: 0 4px 12px rgba(255,149,0,0.2);">導入備份碼</button>
+                <button onclick="exportData()" style="flex:1;">導出備份碼</button>
+                <button onclick="importData()" style="flex:1; background: var(--card-bg); color: var(--dark-cocoa);" class="btn-outline">導入備份碼</button>
             </div>
             
-            <button onclick="resetData()" style="width: 100%; background: #FF3B30; box-shadow: 0 4px 12px rgba(255,59,48,0.2);">⚠️ 清空所有資料</button>
+            <button onclick="resetData()" style="width: 100%; background: #FFF0F0; color: var(--accent-red); border-color: var(--accent-red);" class="btn-outline">⚠️ 清空所有資料</button>
         </div>
     </div>
 
@@ -271,6 +304,14 @@
         window.scrollTo(0, 0);
     }
 
+    // 將日期轉為精簡格式 (例：4/5)
+    function formatShortDate(dateStr) {
+        if(!dateStr) return '';
+        const d = new Date(dateStr);
+        if(isNaN(d.getTime())) return dateStr;
+        return `${d.getMonth()+1}/${d.getDate()}`;
+    }
+
     // --- 行程功能 ---
     function renderItinerary() {
         const container = document.getElementById('itinerary-list'); container.innerHTML = '';
@@ -282,10 +323,11 @@
         });
 
         let prevLocationByDay = {};
+        let currentDayLabel = "";
 
         sortedIti.forEach((item) => {
             let url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.end)}`;
-            let btnHtml = `<button class="map-btn" onclick="window.open('${url}')">📍 導航</button>`;
+            let btnHtml = `<button class="map-btn" onclick="window.open('${url}')">📍 導航前往</button>`;
             
             if (prevLocationByDay[item.date] && !item.checked) {
                 const origin = prevLocationByDay[item.date];
@@ -294,25 +336,46 @@
             }
             prevLocationByDay[item.date] = item.end;
 
-            const dateStr = item.realDate ? `<span style="margin-left:6px; color:var(--text-muted);">${item.realDate}</span>` : '';
-            const noteStr = item.note ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:8px; background:#F2F2F7; padding:6px 10px; border-radius:8px; display:inline-block;">📝 ${item.note}</p>` : '';
+            // 💯 統一格式：每天只有最上面那種乾淨的膠囊 < Day 1 (4/5) >
+            if(item.date !== currentDayLabel) {
+                currentDayLabel = item.date;
+                const shortDate = formatShortDate(item.realDate);
+                const displayTitle = shortDate ? `${item.date} (${shortDate})` : item.date;
+                
+                container.innerHTML += `
+                <div style="background: var(--card-bg); border: 2px solid var(--dark-cocoa); border-radius: 20px; display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; margin: 24px 0 16px; box-shadow: 2px 3px 0 rgba(140,106,83,0.15);">
+                    <span style="color: var(--dark-cocoa); font-weight: 900; font-size:1.1rem;"><</span>
+                    <span style="color: var(--accent-red); font-size: 1.15rem; font-weight: 900;">${displayTitle}</span>
+                    <span style="color: var(--dark-cocoa); font-weight: 900; font-size:1.1rem;">></span>
+                </div>`;
+            }
+
+            // 備註現在獨立出來了
+            const noteStr = item.note ? `<div style="background:var(--bg-cream); padding:10px 14px; border-radius:8px; margin:16px 0 0 0; font-weight:700; font-size:0.95rem; color:var(--dark-cocoa); border: 1px solid var(--dark-cocoa);">💡 ${item.note}</div>` : '';
             
+            // 💯 備註放在按鈕上方
             container.innerHTML += `
-            <div class="card itinerary-item ${item.checked?'strikethrough':''}">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="display:flex; gap:12px; flex:1;">
-                        <input type="checkbox" ${item.checked?'checked':''} onchange="toggleIti(${item.id})">
+            <div class="timeline-container ${item.checked?'strikethrough':''}">
+                <div class="timeline-left">
+                    <div class="timeline-time">${item.time || '—'}</div>
+                    <div class="timeline-line"></div>
+                </div>
+                <div class="card timeline-card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div style="flex:1;">
-                            <div style="font-size:0.85rem; color:var(--text-muted); font-weight:600; margin-bottom:4px;">${item.date} ${dateStr} <span style="color:var(--primary); margin-left:6px;">${item.time}</span></div>
-                            <p style="font-weight:700; font-size:1.1rem; color:var(--text);">${item.end}</p>
-                            ${noteStr}
-                            ${!item.checked ? `<br>${btnHtml}` : ''}
+                            <p style="font-weight:900; font-size:1.25rem; margin-bottom:4px;">${item.end}</p>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <input type="checkbox" ${item.checked?'checked':''} onchange="toggleIti(${item.id})">
+                                <span style="font-size:0.85rem; color:var(--text-muted); font-weight:700;">打卡確認</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-left:12px;">
+                            <button class="icon-btn" onclick="editIti(${item.id})">✎</button>
+                            <button class="icon-btn danger" onclick="deleteIti(${item.id})">✕</button>
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-left:12px;">
-                        <button class="btn-small" onclick="editIti(${item.id})">編輯</button>
-                        <button class="btn-small danger" onclick="deleteIti(${item.id})">刪除</button>
-                    </div>
+                    ${noteStr}
+                    ${!item.checked ? btnHtml : ''}
                 </div>
             </div>`;
         });
@@ -344,7 +407,7 @@
         document.getElementById('edit-iti-end').value = item.end || '';
         document.getElementById('edit-iti-note').value = item.note || '';
         document.getElementById('edit-iti-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-iti-form-container').offsetTop - 100, behavior: 'smooth' });
+        window.scrollTo({ top: document.getElementById('edit-iti-form-container').offsetTop - 20, behavior: 'smooth' });
     }
 
     function saveEditIti() {
@@ -376,20 +439,21 @@
     function renderLuggage() {
         const container = document.getElementById('luggage-list'); container.innerHTML = '';
         appData.luggage.forEach((item) => {
-            const noteStr = item.note ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">📝 ${item.note}</p>` : '';
+            const noteStr = item.note ? `<p style="font-size:0.9rem; color:var(--text-gray); margin-top:2px; font-weight:600;">📝 ${item.note}</p>` : '';
             
+            // 💯 修正勾選框間距 (.check-row 的 padding 拿掉，靠 card 支撐)
             container.innerHTML += `
-            <div class="card check-row ${item.checked?'strikethrough':''}" style="align-items:flex-start;">
+            <div class="card check-row ${item.checked?'strikethrough':''}">
                 <div style="display:flex; gap:16px; flex:1; align-items: center;">
                     <input type="checkbox" ${item.checked?'checked':''} onchange="toggleLug(${item.id})">
                     <div style="flex:1;">
-                        <span style="font-weight:700; font-size:1.05rem;">${item.name}</span>
+                        <span style="font-weight:900; font-size:1.15rem; color:var(--dark-cocoa);">${item.name}</span>
                         ${noteStr}
                     </div>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:10px; margin-left:12px;">
-                    <button class="btn-small" onclick="editLug(${item.id})">編輯</button>
-                    <button class="btn-small danger" onclick="deleteLug(${item.id})">刪除</button>
+                <div style="display:flex; gap:8px; margin-left:12px;">
+                    <button class="icon-btn" onclick="editLug(${item.id})">✎</button>
+                    <button class="icon-btn danger" onclick="deleteLug(${item.id})">✕</button>
                 </div>
             </div>`;
         });
@@ -444,19 +508,21 @@
         const btnUnpurchased = document.getElementById('btn-filter-unpurchased');
         
         if (mode === 'all') {
-            btnAll.style.background = 'white';
-            btnAll.style.color = 'var(--text)';
-            btnAll.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-            btnUnpurchased.style.background = 'transparent';
-            btnUnpurchased.style.color = 'var(--text-muted)';
-            btnUnpurchased.style.boxShadow = 'none';
+            btnAll.className = '';
+            btnAll.style.background = 'var(--dark-cocoa)';
+            btnAll.style.color = 'white';
+            
+            btnUnpurchased.className = 'btn-outline';
+            btnUnpurchased.style.background = 'var(--card-bg)';
+            btnUnpurchased.style.color = 'var(--dark-cocoa)';
         } else {
-            btnUnpurchased.style.background = 'white';
-            btnUnpurchased.style.color = 'var(--text)';
-            btnUnpurchased.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-            btnAll.style.background = 'transparent';
-            btnAll.style.color = 'var(--text-muted)';
-            btnAll.style.boxShadow = 'none';
+            btnUnpurchased.className = '';
+            btnUnpurchased.style.background = 'var(--dark-cocoa)';
+            btnUnpurchased.style.color = 'white';
+            
+            btnAll.className = 'btn-outline';
+            btnAll.style.background = 'var(--card-bg)';
+            btnAll.style.color = 'var(--dark-cocoa)';
         }
         renderShopping();
     }
@@ -470,44 +536,49 @@
 
         const renderItem = (item) => {
             const twd = Math.round(item.price_jpy * appData.rate);
-            const noteStr = item.note ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">📝 ${item.note}</p>` : '';
+            
+            // 💯 加大地點與備註的字體大小
+            const noteStr = item.note ? `<p style="font-size:0.95rem; color:var(--text-gray); font-weight:700; margin-bottom: 6px;">📝 ${item.note}</p>` : '';
             const imgStr = item.image ? `<img src="${item.image}" class="img-thumbnail" onclick="showImage('${item.image}')">` : '';
             
+            // 💯 字體更大、更明顯的寶寶藍精緻小標籤價格
             return `
             <div class="card ${item.checked?'strikethrough':''}">
-                <div style="display:flex; justify-content:space-between;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="display:flex; gap:16px; flex:1;">
-                        <input type="checkbox" ${item.checked?'checked':''} onchange="toggleShop(${item.id})">
+                        <input type="checkbox" ${item.checked?'checked':''} onchange="toggleShop(${item.id})" style="margin-top:4px;">
                         <div style="flex:1;">
-                            <b style="font-size:1.1rem;">${item.name}</b>
-                            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">📍 ${item.shop}</p>
+                            <b style="font-size:1.25rem; font-weight:900; color:var(--dark-cocoa); display:block; margin-bottom:8px;">${item.name}</b>
+                            
+                            <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                                <span style="background:var(--accent-blue); color:white; padding:4px 10px; border-radius:8px; font-size:1.1rem; font-weight:900; border: 2px solid var(--dark-cocoa);">¥ ${Number(item.price_jpy).toLocaleString()}</span>
+                                <span style="color:var(--dark-cocoa); font-size:0.95rem; font-weight:800; margin-top:4px;">約 NT$ ${twd.toLocaleString()}</span>
+                            </div>
+
+                            ${item.shop ? `<p style="font-size:0.95rem; color:var(--dark-cocoa); font-weight:800; margin-bottom: 6px;">📍 ${item.shop}</p>` : ''}
                             ${noteStr}
                             ${imgStr}
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:10px; margin-left:12px;">
-                        <button class="btn-small" onclick="editShop(${item.id})">編輯</button>
-                        <button class="btn-small danger" onclick="deleteShop(${item.id})">刪除</button>
+                    <div style="display:flex; gap:8px; margin-left:12px;">
+                        <button class="icon-btn" onclick="editShop(${item.id})">✎</button>
+                        <button class="icon-btn danger" onclick="deleteShop(${item.id})">✕</button>
                     </div>
-                </div>
-                <div class="price-box">
-                    <span class="price-jpy">¥ ${Number(item.price_jpy).toLocaleString()}</span>
-                    <span class="price-twd">約 NT$ ${twd.toLocaleString()}</span>
                 </div>
             </div>`;
         };
 
         if (unpurchased.length > 0) {
             if (currentShopFilter === 'all') {
-                container.innerHTML += `<h4 style="margin: 10px 0 16px 4px; color: var(--text); font-size:1.1rem; font-weight:800;">🛒 尚未購買</h4>`;
+                container.innerHTML += `<div class="section-badge">⭐ 尚未購買清單</div>`;
             }
             unpurchased.forEach(item => { container.innerHTML += renderItem(item); });
         } else if (appData.shopping.length > 0) {
-            container.innerHTML += `<div style="text-align:center; padding: 40px 0;"><span style="font-size:3rem; display:block; margin-bottom:10px;">🎉</span><p style="color:var(--text-muted); font-weight:600;">所有商品都買齊囉！</p></div>`;
+            container.innerHTML += `<div style="text-align:center; padding: 30px 0;"><span style="font-size:3rem; display:block; margin-bottom:10px;">🎉</span><p style="color:var(--dark-cocoa); font-weight:900; font-size:1.2rem;">所有商品都買齊囉！</p></div>`;
         }
 
         if (currentShopFilter === 'all' && purchased.length > 0) {
-            container.innerHTML += `<h4 style="margin: 30px 0 16px 4px; color: var(--text-muted); font-size:1.1rem; font-weight:700;">✅ 已購買</h4>`;
+            container.innerHTML += `<div class="section-badge section-badge-done">✅ 已完成清單</div>`;
             purchased.forEach(item => { container.innerHTML += renderItem(item); });
         }
     }
@@ -523,7 +594,7 @@
         document.getElementById('edit-note').value = '';
         document.getElementById('edit-image').value = '';
         document.getElementById('edit-form-container').style.display='block'; 
-        window.scrollTo({ top: document.getElementById('edit-form-container').offsetTop - 100, behavior: 'smooth' });
+        window.scrollTo({ top: document.getElementById('edit-form-container').offsetTop - 20, behavior: 'smooth' });
     }
 
     function editShop(id) {
@@ -539,7 +610,7 @@
         document.getElementById('edit-image').value = ''; 
         
         document.getElementById('edit-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-form-container').offsetTop - 100, behavior: 'smooth' });
+        window.scrollTo({ top: document.getElementById('edit-form-container').offsetTop - 20, behavior: 'smooth' });
     }
     
     function compressImage(file, callback) {
@@ -648,7 +719,7 @@
             
             if(btn) { btn.innerText = "✓ 網路抓取成功"; setTimeout(() => { btn.innerText = "🌐 從網路獲取最新匯率"; }, 3000); }
         } catch(e){ 
-            document.getElementById('rate-sync-info').innerText = "連網失敗，請稍後再試或使用手動輸入"; 
+            document.getElementById('rate-sync-info').innerText = "連網失敗，請使用手動輸入"; 
             if(btn) { btn.innerText = "連線失敗"; setTimeout(() => { btn.innerText = "🌐 從網路獲取最新匯率"; }, 3000); }
         } 
     }
