@@ -177,6 +177,20 @@
         <img id="modal-img" src="">
     </div>
 
+    <div id="shop-to-acc-modal" class="modal">
+        <div class="card" style="width: 85%; max-width: 320px; padding: 24px; text-align: center; border-radius: 24px; box-shadow: 0 10px 30px rgba(138, 115, 99, 0.2);">
+            <h3 style="margin-bottom: 12px; font-weight: 900; color: var(--main-text);">🛒 加入記帳本？</h3>
+            <p style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px;">是否將「<span id="shop-modal-name" style="color:var(--main-text); font-weight:900;"></span>」計入旅程總花費？</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button onclick="shopToAccDirect()" style="width: 100%; background: var(--color-acc); border-color: var(--color-acc);">✅ 直接計入帳本</button>
+                <button onclick="shopToAccEdit()" style="width: 100%; background: var(--color-babyblue); border-color: var(--color-babyblue);">✎ 修改實際金額後記帳</button>
+                <button onclick="shopToAccSkip()" style="width: 100%; background: var(--input-bg); color: var(--main-text); border-color: var(--main-border);">純打勾 (不記帳)</button>
+                <button onclick="closeShopModal()" class="btn-outline" style="width: 100%; border: none; box-shadow: none; margin-top: 4px;">取消</button>
+            </div>
+        </div>
+    </div>
+
     <div id="home" class="page active">
         <div class="card">
             <h2 style="margin-bottom: 20px; font-weight: 900; font-size: 1.45rem; color: var(--main-text);">
@@ -314,6 +328,7 @@
                     <option value="自己買">自己買</option>
                     <option value="家人">家人</option>
                     <option value="代購">代購</option>
+                    <option value="共同">共同花費</option>
                 </select>
                 <input type="text" id="edit-shop" placeholder="購買地點 (選填)" style="flex: 2;">
             </div>
@@ -334,13 +349,30 @@
 
     <div id="accounting" class="page">
         <div class="card" style="background-image: linear-gradient(135deg, var(--color-acc) 0%, #9E8594 100%); color: #FFF; border: none; box-shadow: 0 8px 20px rgba(180, 155, 170, 0.4);">
-            <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-bottom: 4px;">目前的 <span id="acc-display-title">旅程總支出</span></p>
-            <p style="font-size: 2.2rem; font-weight: 900; line-height: 1.1;"><span class="curr-sym">¥</span> <span id="acc-total-jpy">0</span></p>
-            <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-top: 8px;">折合 NT$ <span id="acc-total-twd">0</span></p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-bottom: 4px;">目前的 <span id="acc-display-title">旅程總支出</span></p>
+                    <p style="font-size: 2.2rem; font-weight: 900; line-height: 1.1;"><span class="curr-sym">¥</span> <span id="acc-total-jpy">0</span></p>
+                    <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-top: 8px;">折合 NT$ <span id="acc-total-twd">0</span></p>
+                </div>
+                <select id="acc-calc-method" onchange="changeCalcMethod()" style="background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 4px 6px; font-size: 0.75rem; font-weight: 700; outline: none; width: auto; appearance: none; -webkit-appearance: none;">
+                    <option value="mix" style="color: black;">混合匯率 (現金手動/刷卡網路)</option>
+                    <option value="auto" style="color: black;">全部依網路匯率</option>
+                    <option value="manual" style="color: black;">全部依手動匯率</option>
+                </select>
+            </div>
         </div>
 
-        <div class="filter-scroll">
-            <div class="filter-pill active acc" onclick="setAccFilter('全部', this)">全部</div>
+        <div class="filter-scroll" id="acc-for-filter-bar" style="padding-bottom: 5px;">
+            <div class="filter-pill active acc" onclick="setAccForFilter('全部', this)">全部對象</div>
+            <div class="filter-pill acc" onclick="setAccForFilter('自己買', this)">自己買</div>
+            <div class="filter-pill acc" onclick="setAccForFilter('家人', this)">家人</div>
+            <div class="filter-pill acc" onclick="setAccForFilter('代購', this)">代購</div>
+            <div class="filter-pill acc" onclick="setAccForFilter('共同', this)">共同花費</div>
+        </div>
+
+        <div class="filter-scroll" style="padding-top: 5px;">
+            <div class="filter-pill active acc" onclick="setAccFilter('全部', this)">全部類別</div>
             <div class="filter-pill acc" onclick="setAccFilter('飲食', this)">飲食</div>
             <div class="filter-pill acc" onclick="setAccFilter('交通', this)">交通</div>
             <div class="filter-pill acc" onclick="setAccFilter('購物', this)">購物</div>
@@ -391,21 +423,30 @@
         <div id="edit-acc-form-container" style="display: none; background: var(--input-bg); padding: 20px; border-radius: 20px; border: 2px solid var(--main-border); margin-bottom: 24px;">
             <h3 id="acc-form-title" style="margin-bottom: 16px; font-weight: 900;">新增支出</h3>
             <input type="hidden" id="edit-acc-id">
+            <input type="hidden" id="edit-acc-shopId">
             
             <input type="text" id="edit-acc-name" placeholder="這筆錢花在哪？ (如: 一蘭拉麵)">
             <input type="number" id="edit-acc-jpy" placeholder="花費外幣金額">
 
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <input type="date" id="edit-acc-date" style="flex: 1.2;">
-                <select id="edit-acc-cat" style="flex: 0.8;">
-                    <option value="飲食">飲食</option><option value="交通">交通</option><option value="購物">購物</option><option value="門票">門票</option><option value="住宿">住宿</option><option value="其他">其他</option>
+                <input type="date" id="edit-acc-date" style="flex: 1;">
+                <select id="edit-acc-forWho" style="flex: 0.8;">
+                    <option value="自己買">自己買</option>
+                    <option value="家人">家人</option>
+                    <option value="代購">代購</option>
+                    <option value="共同">共同花費</option>
                 </select>
             </div>
-            
-            <select id="edit-acc-pay" style="margin-bottom: 12px;">
-                <option value="card">💳 刷卡 (自動網路即時匯率)</option>
-                <option value="cash">💵 付現 (固定手動現金匯率)</option>
-            </select>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <select id="edit-acc-cat" style="flex: 1;">
+                    <option value="飲食">飲食</option><option value="交通">交通</option><option value="購物">購物</option><option value="門票">門票</option><option value="住宿">住宿</option><option value="其他">其他</option>
+                </select>
+                <select id="edit-acc-pay" style="flex: 1.2;">
+                    <option value="card">💳 刷卡 (自動即時匯率)</option>
+                    <option value="cash">💵 付現 (固定現金匯率)</option>
+                </select>
+            </div>
             
             <input type="text" id="edit-acc-note" placeholder="備註用途 (選填)">
             
@@ -421,7 +462,7 @@
         <div class="card">
             <h3 style="margin-bottom:20px; font-weight: 900;">⚙️ 匯率設定</h3>
             
-            <label style="font-size: 0.95rem; font-weight: 800; display: block; margin: 0 0 8px 4px;">手動設定匯率</label>
+            <label style="font-size: 0.95rem; font-weight: 800; display: block; margin: 0 0 8px 4px;">手動設定匯率 (1 JPY = ? TWD)</label>
             <div style="display: flex; gap: 12px; margin-bottom: 16px;">
                 <input type="number" step="0.0001" id="manual-rate-input" placeholder="例如: 0.215" style="margin: 0; flex: 2;">
                 <button onclick="saveManualRate()" style="flex: 1; background: var(--color-slate); border-color: var(--color-slate);">儲存</button>
@@ -494,9 +535,9 @@
     </nav>
 
 <script>
-    // 💯 預設多國匯率與漂亮範例資料
     const defaultData = { 
         currency: 'JPY',
+        calcMethod: 'mix', 
         autoRates: { JPY: 0.2145, KRW: 0.0235, USD: 32.1, EUR: 34.5, THB: 0.91 },
         manualRates: { JPY: 0.215, KRW: 0.024, USD: 32.5, EUR: 35.0, THB: 0.95 },
         luggage: [
@@ -514,8 +555,8 @@
             { id: 3, name: "知名保健食品", qty: "3", price_jpy: "4500", forWho: "代購", shop: "連鎖藥妝店", note: "朋友托買", image: "", checked: false }
         ],
         accounting: [
-            { id: 1, name: "機場快線車票", category: "交通", price_jpy: "2500", twd_price: 538, date: "2026-04-05", payMethod: "card", note: "直達市區" },
-            { id: 2, name: "道地午餐", category: "飲食", price_jpy: "1200", twd_price: 258, date: "2026-04-05", payMethod: "cash", note: "" }
+            { id: 1, name: "機場快線車票", category: "交通", price_jpy: "2500", twd_price: 538, date: "2026-04-05", payMethod: "card", forWho: "自己買", note: "直達市區" },
+            { id: 2, name: "道地午餐", category: "飲食", price_jpy: "1200", twd_price: 258, date: "2026-04-05", payMethod: "cash", forWho: "共同", note: "" }
         ]
     };
     
@@ -530,18 +571,23 @@
             appData.currency = 'JPY';
             delete appData.rate; delete appData.autoRate; delete appData.manualRate;
         }
+        if (!appData.calcMethod) appData.calcMethod = 'mix';
         if (!appData.currency) appData.currency = 'JPY';
         if (!appData.luggage) appData.luggage = defaultData.luggage;
         if (!appData.itinerary) appData.itinerary = defaultData.itinerary;
         if (!appData.shopping) appData.shopping = defaultData.shopping;
         if (!appData.accounting) appData.accounting = defaultData.accounting;
         
-        appData.accounting.forEach(a => { if(!a.payMethod) a.payMethod = 'cash'; });
+        appData.accounting.forEach(a => { 
+            if(!a.payMethod) a.payMethod = 'cash'; 
+            if(!a.forWho) a.forWho = '自己買'; 
+        });
     }
 
     let currentShopFilter = 'all';
     let currentShopForFilter = '全部';
     let currentAccFilter = '全部';
+    let currentAccForFilter = '全部';
     let calcMode = 'auto';
     let currentCalcStr = "0";
 
@@ -555,7 +601,6 @@
 
     function saveData() { localStorage.setItem('jpTravelApp', JSON.stringify(appData)); updateStats(); }
 
-    // 💯 導航與分頁記憶
     function nav(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => {
@@ -580,7 +625,8 @@
     function formatShortDate(dateStr) {
         if(!dateStr) return '';
         const d = new Date(dateStr);
-        return isNaN(d.getTime()) ? dateStr : `${d.getMonth()+1}/${d.getDate()}`;
+        if(isNaN(d.getTime())) return dateStr;
+        return `${d.getMonth()+1}/${d.getDate()}`;
     }
 
     function toggleForm(id, setupFunc = null) {
@@ -623,7 +669,7 @@
         }
     }
 
-    // --- 💱 首頁雙向匯率 (修復按鈕顏色Bug) ---
+    // --- 首頁匯率試算機 ---
     function changeCurrency() {
         appData.currency = document.getElementById('currency-selector').value;
         saveData();
@@ -657,10 +703,23 @@
         }
     }
 
-    // --- 記帳功能 (💯 鎖死金額與支付方式) ---
+    // --- 💯 記帳功能 (對象過濾與自動算錢) ---
+    function changeCalcMethod() {
+        appData.calcMethod = document.getElementById('acc-calc-method').value;
+        saveData();
+        renderAccounting();
+    }
+
     function setAccFilter(cat, el) {
         currentAccFilter = cat;
-        document.querySelectorAll('#accounting .filter-pill').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#accounting .filter-scroll:nth-of-type(2) .filter-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        renderAccounting();
+    }
+
+    function setAccForFilter(forWho, el) {
+        currentAccForFilter = forWho;
+        document.querySelectorAll('#acc-for-filter-bar .filter-pill').forEach(p => p.classList.remove('active'));
         el.classList.add('active');
         renderAccounting();
     }
@@ -669,28 +728,41 @@
         const container = document.getElementById('accounting-list'); container.innerHTML = '';
         const c = appData.currency;
         const sym = currInfo[c].s;
+        const method = appData.calcMethod;
         
-        const filtered = currentAccFilter === '全部' ? appData.accounting : appData.accounting.filter(a => a.category === currentAccFilter);
-        document.getElementById('acc-display-title').innerText = currentAccFilter === '全部' ? '旅程總支出' : `[${currentAccFilter}] 支出合計`;
+        document.getElementById('acc-calc-method').value = method;
+
+        let filtered = appData.accounting;
+        if (currentAccFilter !== '全部') filtered = filtered.filter(a => a.category === currentAccFilter);
+        if (currentAccForFilter !== '全部') filtered = filtered.filter(a => (a.forWho || '自己買') === currentAccForFilter);
+
+        let displayForeign = 0;
+        let displayTwd = 0;
 
         filtered.sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => {
             const price = Number(item.price_jpy) || 0;
+            displayForeign += price;
             
-            // 讀取已經鎖死固定的台幣金額
             let twdFixed = item.twd_price;
-            if (twdFixed === undefined) { // 如果是舊資料就補算
+            if (twdFixed === undefined) { 
                 twdFixed = Math.round(price * (item.payMethod === 'card' ? appData.autoRates[c] : appData.manualRates[c]));
                 item.twd_price = twdFixed;
             }
+            displayTwd += twdFixed;
             
             const payTag = item.payMethod === 'card' ? '💳 刷卡' : '💵 付現';
+            const forWhoTag = `<span class="cat-tag" style="color:var(--color-acc); border-color:var(--color-acc);">${item.forWho || '自己買'}</span>`;
+            
+            // 💯 撤回按鈕 (如果來自購物清單)
+            const undoBtn = item.shopId ? `<button class="icon-btn" onclick="undoAcc(${item.id}, ${item.shopId})" style="width:36px; height:36px; font-size:1.1rem;" title="撤回至購物清單">↩</button>` : '';
 
             container.innerHTML += `
             <div class="card" style="padding: 16px 20px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="flex:1;">
-                        <div style="display:flex; align-items:center; margin-bottom:8px; gap:8px;">
+                        <div style="display:flex; align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
                             <span class="cat-tag">${item.category}</span>
+                            ${forWhoTag}
                             <span style="font-size:0.85rem; color:var(--text-muted); font-weight:800;">${item.date.slice(5)}</span>
                         </div>
                         <b style="font-size:1.15rem; color:var(--main-text); display:block; margin-bottom:6px;">${item.name || '未命名支出'}</b>
@@ -705,21 +777,30 @@
                     </div>
                     <div style="display:flex; flex-direction:column; gap:8px; margin-left:12px;">
                         <button class="icon-btn" onclick="editAcc(${item.id})" style="width:36px; height:36px;">✎</button>
+                        ${undoBtn}
                         <button class="icon-btn danger" onclick="deleteAcc(${item.id})" style="width:36px; height:36px;">✕</button>
                     </div>
                 </div>
             </div>`;
         });
+
+        // 💯 動態更新紫卡的顯示金額 (只顯示目前篩選的結果)
+        const isAll = (currentAccFilter === '全部' && currentAccForFilter === '全部');
+        document.getElementById('acc-display-title').innerText = isAll ? '旅程總支出' : `目前篩選合計`;
+        document.getElementById('acc-total-jpy').innerText = displayForeign.toLocaleString();
+        document.getElementById('acc-total-twd').innerText = displayTwd.toLocaleString();
     }
 
     function openAccForm() {
         document.getElementById('acc-form-title').innerText = '新增支出';
         document.getElementById('edit-acc-id').value = '';
+        document.getElementById('edit-acc-shopId').value = '';
         document.getElementById('edit-acc-name').value = '';
         document.getElementById('edit-acc-jpy').value = '';
         document.getElementById('edit-acc-note').value = '';
         document.getElementById('edit-acc-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('edit-acc-pay').value = 'card';
+        document.getElementById('edit-acc-forWho').value = '自己買';
     }
 
     function editAcc(id) {
@@ -727,9 +808,11 @@
         if(!item) return;
         document.getElementById('acc-form-title').innerText = '編輯支出';
         document.getElementById('edit-acc-id').value = item.id;
+        document.getElementById('edit-acc-shopId').value = item.shopId || '';
         document.getElementById('edit-acc-date').value = item.date || '';
         document.getElementById('edit-acc-cat').value = item.category || '其他';
         document.getElementById('edit-acc-pay').value = item.payMethod || 'card';
+        document.getElementById('edit-acc-forWho').value = item.forWho || '自己買';
         document.getElementById('edit-acc-jpy').value = item.price_jpy || '';
         document.getElementById('edit-acc-name').value = item.name || '';
         document.getElementById('edit-acc-note').value = item.note || '';
@@ -738,14 +821,15 @@
         window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 20, behavior: 'smooth' });
     }
 
-    // 💯 刷卡自動抓匯率並永久鎖死金額
     async function saveAccounting() {
         const id = document.getElementById('edit-acc-id').value;
+        const shopId = document.getElementById('edit-acc-shopId').value;
         const name = document.getElementById('edit-acc-name').value;
         const jpy = document.getElementById('edit-acc-jpy').value;
         const date = document.getElementById('edit-acc-date').value;
         const cat = document.getElementById('edit-acc-cat').value;
         const pay = document.getElementById('edit-acc-pay').value;
+        const forWho = document.getElementById('edit-acc-forWho').value || '自己買';
         const note = document.getElementById('edit-acc-note').value; 
         
         if(!jpy) return alert("請輸入金額喔！");
@@ -772,17 +856,44 @@
 
         const twd = Math.round(Number(jpy) * rateToUse);
 
-        const entry = { id: id ? Number(id) : Date.now(), name, price_jpy: jpy, twd_price: twd, date, category: cat, payMethod: pay, note };
+        const entry = { id: id ? Number(id) : Date.now(), name, price_jpy: jpy, twd_price: twd, date, category: cat, payMethod: pay, forWho: forWho, note };
+        
+        // 如果是從購物清單來的，正式標記為已買
+        if (shopId) {
+            entry.shopId = Number(shopId);
+            const shopItem = appData.shopping.find(s => s.id == shopId);
+            if(shopItem) shopItem.checked = true;
+        }
+
         if(id) { appData.accounting = appData.accounting.map(a => a.id == id ? entry : a); }
         else { appData.accounting.push(entry); }
         
+        document.getElementById('edit-acc-shopId').value = ''; // 清除隱藏欄位
         document.getElementById('edit-acc-form-container').style.display='none';
-        saveData(); renderAccounting();
+        
+        saveData(); 
+        renderAccounting();
+        if(shopId) renderShopping(); // 同步更新購物清單背景
     }
 
     function deleteAcc(id) { if(confirm("確定刪除這筆紀錄？")) { appData.accounting = appData.accounting.filter(a => a.id != id); saveData(); renderAccounting(); } }
 
-    // --- 行程功能 (💯 全局跨日自動接續導航) ---
+    // 💯 撤回功能：從記帳移除並恢復購物清單狀態
+    function undoAcc(accId, shopId) {
+        if(confirm("確定要將此花費從記帳本撤回，並恢復到購物清單嗎？")) {
+            appData.accounting = appData.accounting.filter(a => a.id != accId);
+            const shopItem = appData.shopping.find(s => s.id == shopId);
+            if(shopItem) shopItem.checked = false;
+            
+            saveData();
+            renderAccounting();
+            renderShopping();
+            alert("已成功撤回！");
+        }
+    }
+
+
+    // --- 行程功能 (全局跨日自動接續導航) ---
     function renderItinerary() {
         const container = document.getElementById('itinerary-list'); container.innerHTML = '';
         const sortedIti = [...appData.itinerary].sort((a, b) => {
@@ -791,11 +902,10 @@
             return a.time.localeCompare(b.time);
         });
 
-        let prevLocation = null; // 全局跨日記憶
+        let prevLocation = null;
         let currentDayLabel = "";
 
         sortedIti.forEach((item) => {
-            // 導航換成 Deep Link (target="_blank")，跳轉 Google Maps APP 不卡視窗
             let url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.end)}`;
             let btnHtml = `<button class="map-btn" onclick="window.open('${url}', '_blank')">📍 導航前往</button>`;
             
@@ -803,7 +913,7 @@
                 url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocation)}&destination=${encodeURIComponent(item.end)}`;
                 btnHtml = `<button class="map-route-btn" onclick="window.open('${url}', '_blank')">🚗 路線與時間</button>`;
             }
-            prevLocation = item.end; // 記錄下來給下一站用 (包含明天的第一站)
+            prevLocation = item.end;
 
             if(item.date !== currentDayLabel) {
                 currentDayLabel = item.date;
@@ -988,7 +1098,7 @@
     }
     function deleteLug(id) { if(confirm("確定要刪除這個項目嗎？")) { appData.luggage = appData.luggage.filter(l=>l.id!=id); saveData(); renderLuggage(); } }
 
-    // --- 🛍️ 購物清單 ---
+    // --- 購物清單 ---
     function setShopForFilter(forWho, el) {
         currentShopForFilter = forWho;
         document.querySelectorAll('#shop-filter-bar .filter-pill').forEach(p => p.classList.remove('active'));
@@ -1067,7 +1177,93 @@
         }
     }
 
-    function toggleShop(id) { const i = appData.shopping.find(s=>s.id==id); i.checked = !i.checked; saveData(); renderShopping(); }
+    let pendingShopId = null;
+    function toggleShop(id) { 
+        const i = appData.shopping.find(s=>s.id==id);
+        if(i.checked) {
+            i.checked = false;
+            saveData(); renderShopping();
+        } else {
+            pendingShopId = id;
+            document.getElementById('shop-modal-name').innerText = i.name;
+            document.getElementById('shop-to-acc-modal').style.display = 'flex';
+            renderShopping(); 
+        }
+    }
+
+    function closeShopModal() {
+        document.getElementById('shop-to-acc-modal').style.display = 'none';
+        pendingShopId = null;
+    }
+
+    // 選項A：直接加入記帳
+    async function shopToAccDirect() {
+        const i = appData.shopping.find(s=>s.id==pendingShopId);
+        i.checked = true;
+        const totalForeign = (Number(i.price_jpy)||0) * (parseInt(i.qty)||1);
+        const c = appData.currency;
+        
+        let rateToUse = appData.autoRates[c]; 
+        try { 
+            const btn = document.getElementById('update-rate-btn');
+            if(btn) btn.innerText = "連線結算中...";
+            const r = await fetch('https://api.exchangerate-api.com/v4/latest/TWD'); 
+            const d = await r.json(); 
+            if(d.rates && d.rates[c]) {
+                rateToUse = Math.round((1 / d.rates[c]) * 10000)/10000;
+                appData.autoRates[c] = rateToUse;
+            }
+            if(btn) btn.innerText = "網路最新匯率";
+        } catch(e) {}
+        
+        const twdFixed = Math.round(totalForeign * rateToUse);
+        
+        appData.accounting.unshift({
+            id: Date.now(),
+            name: i.name,
+            price_jpy: totalForeign,
+            twd_price: twdFixed,
+            date: new Date().toISOString().split('T')[0],
+            category: '購物',
+            payMethod: 'card',
+            forWho: i.forWho || '自己買',
+            shopId: i.id, // 標記來自購物清單
+            note: '來自購物清單'
+        });
+        
+        closeShopModal(); 
+        saveData(); 
+        renderShopping(); 
+        renderAccounting(); 
+        alert("✅ 已成功鎖定匯率與金額，並加入記帳本！\n(可隨時在記帳分頁撤回)");
+    }
+
+    // 💯 選項B：修改後記帳 (帶入表單並打開)
+    function shopToAccEdit() {
+        const i = appData.shopping.find(s=>s.id==pendingShopId);
+        // 先不打勾！等記帳那邊按下儲存後才打勾
+        closeShopModal(); 
+        
+        nav('accounting');
+        openAccForm();
+        document.getElementById('edit-acc-name').value = i.name;
+        document.getElementById('edit-acc-jpy').value = (Number(i.price_jpy)||0) * (parseInt(i.qty)||1);
+        document.getElementById('edit-acc-cat').value = '購物';
+        document.getElementById('edit-acc-pay').value = 'card';
+        document.getElementById('edit-acc-forWho').value = i.forWho || '自己買';
+        document.getElementById('edit-acc-note').value = '來自購物清單';
+        document.getElementById('edit-acc-shopId').value = i.id; // 將 ID 傳過去
+        
+        document.getElementById('edit-acc-form-container').style.display = 'block';
+        window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    // 選項C：純打勾不記帳
+    function shopToAccSkip() {
+        const i = appData.shopping.find(s=>s.id==pendingShopId);
+        i.checked = true;
+        closeShopModal(); saveData(); renderShopping();
+    }
     
     function openAddForm() { 
         document.getElementById('form-title').innerText = '新增商品';
@@ -1151,7 +1347,7 @@
     function deleteShop(id) { if(confirm("確定要刪除這個商品嗎？")) { appData.shopping = appData.shopping.filter(s=>s.id!=id); saveData(); renderShopping(); } }
     function showImage(src) { document.getElementById('modal-img').src = src; document.getElementById('image-modal').style.display = 'flex'; }
 
-    // --- 系統更新計算 ---
+    // --- 系統更新計算與總金額修復 ---
     function updateStats() {
         const c = appData.currency || 'JPY';
         const sym = currInfo[c].s;
@@ -1170,6 +1366,7 @@
         let totalForeign = 0;
         let totalTwd = 0;
         
+        // 全局總金額計算
         appData.accounting.forEach(a => {
             const price = Number(a.price_jpy) || 0;
             totalForeign += price;
@@ -1181,6 +1378,7 @@
             totalTwd += twdFixed;
         });
 
+        // 綁定首頁花費卡片
         const statAccJpy = document.getElementById('stat-acc-jpy');
         if (statAccJpy) statAccJpy.innerText = totalForeign.toLocaleString();
         const statAccTwd = document.getElementById('stat-acc-twd');
@@ -1209,12 +1407,13 @@
         else { alert("請輸入有效的匯率數字喔！"); }
     }
 
-   async function fetchLiveRate() { 
+    // 首頁連網提示文字修復
+    async function fetchLiveRate() { 
         const btn = document.getElementById('update-rate-btn');
-        const info = document.getElementById('rate-sync-info'); // 抓取首頁的提示文字
+        const info = document.getElementById('rate-sync-info'); 
         
         if(btn) btn.innerText = "更新中...";
-        if(info) info.innerText = "網路更新中..."; // 剛打開時顯示正在更新
+        if(info) info.innerText = "網路更新中..."; 
         
         try { 
             const r = await fetch('https://api.exchangerate-api.com/v4/latest/TWD'); 
@@ -1233,7 +1432,9 @@
                     setTimeout(() => { btn.innerText = "網路最新匯率"; }, 3000); 
                 }
                 if(info) {
-                    info.innerText = "最後自動更新: " + new Date().toLocaleTimeString(); // 成功後顯示當下時間
+                    const now = new Date();
+                    const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                    info.innerText = "最後自動更新: " + timeString;
                 }
             }
         } catch(e){ 
@@ -1242,7 +1443,7 @@
                 setTimeout(() => { btn.innerText = "網路最新匯率"; }, 3000); 
             }
             if(info) {
-                info.innerText = "連網失敗，請稍後再試"; // 失敗時首頁也會提示
+                info.innerText = "連網失敗，請稍後再試"; 
             }
         } 
     }
