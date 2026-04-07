@@ -186,7 +186,7 @@
     const firebaseConfig = { apiKey: "AIzaSyBh9s18n_te0ozRZuHBJeU62JhFAUp0-CY", authDomain: "mytravelapp-9a354.firebaseapp.com", databaseURL: "https://mytravelapp-9a354-default-rtdb.firebaseio.com", projectId: "mytravelapp-9a354", storageBucket: "mytravelapp-9a354.firebasestorage.app", messagingSenderId: "61234079329", appId: "1:61234079329:web:958213174020d9cfd7ec20" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const DB_PATH = '/japanTrip_ivy0407'; // 🔴 記得金門版要改成 /kinmenTrip_ivy0407
+    const DB_PATH = '/kinmenTrip_ivy0407';
 
     const defaultData = { currency: 'JPY', categories: ['飲食', '交通', '購物', '門票', '住宿', '其他'], shopForCategories: ['自己買', '家人', '代購', '共同'], luggageOwners: ['我的行李'], autoRates: { JPY: 0.21, TWD: 1 }, manualRates: { JPY: 0.21, TWD: 1 }, luggage: [], itinerary: [], shopping: [], accounting: [] };
     let appData = defaultData; 
