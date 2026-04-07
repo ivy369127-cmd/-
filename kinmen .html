@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23FCF8F2' rx='112'/%3E%3Cpath d='M128 160h256v256H128z' fill='%23FFFFFF' stroke='%23C8B6A6' stroke-width='24' rx='32'/%3E%3Cpath d='M208 160V112a48 48 0 0 1 96 0v48' fill='none' stroke='%23C8B6A6' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='256' cy='288' r='48' fill='%23B59D8B'/%3E%3C/svg%3E">
-    <link rel="icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23FCF8F2' rx='112'/%3E%3Cpath d='M128 160h256v256H128z' fill='%23FFFFFF' stroke='%23C8B6A6' stroke-width='24' rx='32'/%3E%3Cpath d='M208 160V112a48 48 0 0 1 96 0v48' fill='none' stroke='%23C8B6A6' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='256' cy='288' r='48' fill='%23B59D8B'/%3E%3C/svg%3E">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="旅行助手">
+    <meta name="apple-mobile-web-app-title" content="旅行小助手">
     <meta name="theme-color" content="#FCF8F2">
-
+    <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23FCF8F2' rx='112'/%3E%3Cpath d='M128 160h256v256H128z' fill='%23FFFFFF' stroke='%23C8B6A6' stroke-width='24' rx='32'/%3E%3Cpath d='M208 160V112a48 48 0 0 1 96 0v48' fill='none' stroke='%23C8B6A6' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='256' cy='288' r='48' fill='%23B59D8B'/%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23FCF8F2' rx='112'/%3E%3Cpath d='M128 160h256v256H128z' fill='%23FFFFFF' stroke='%23C8B6A6' stroke-width='24' rx='32'/%3E%3Cpath d='M208 160V112a48 48 0 0 1 96 0v48' fill='none' stroke='%23C8B6A6' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='256' cy='288' r='48' fill='%23B59D8B'/%3E%3C/svg%3E">
+    
     <title>旅行小助手</title>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         /* 🎨 高級莫蘭迪 x 奶茶手帳風 (絕對不動) */
@@ -60,6 +60,20 @@
             border-radius: 0 0 24px 24px;
             box-shadow: 0 4px 15px var(--shadow-color);
         }
+        
+        /* 🧊 新增：凍結面板 CSS */
+        .sticky-panel {
+            position: sticky;
+            top: calc(65px + env(safe-area-inset-top)); 
+            z-index: 40;
+            background: var(--bg-cream);
+            padding: 10px 0 15px;
+            margin: -10px -18px 15px -18px;
+            padding-left: 18px;
+            padding-right: 18px;
+            border-bottom: 2px dashed rgba(200, 182, 166, 0.3);
+        }
+        .ghost { opacity: 0.4; background: #f0e9e4; border: 2px dashed var(--main-border); border-radius: 20px; }
         
         .card { 
             background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 18px; 
@@ -200,10 +214,7 @@
 
     <div id="home" class="page active">
         <div class="card">
-            <h2 style="margin-bottom: 20px; font-weight: 900; font-size: 1.45rem; color: var(--main-text);">
-                今日進度
-            </h2>
-            
+            <h2 style="margin-bottom: 20px; font-weight: 900; font-size: 1.45rem; color: var(--main-text);">今日進度</h2>
             <div class="stat-wrapper" style="background: rgba(205, 139, 118, 0.1);">
                 <div class="stat-label" style="color: var(--color-terracotta);">行李準備</div>
                 <span class="stat-value" style="color: var(--color-terracotta);" id="stat-luggage">0%</span>
@@ -237,7 +248,6 @@
                     <option value="TWD">🇹🇼 台幣 (TWD)</option>
                 </select>
             </div>
-            
             <div style="display: flex; gap: 10px; margin-bottom: 18px;">
                 <button id="calc-btn-auto" onclick="setCalcMode('auto')" style="flex: 1; padding: 12px 8px; flex-direction: column; gap: 2px;">
                     <span style="font-size: 0.8rem; opacity: 0.9;">網路匯率</span>
@@ -248,7 +258,6 @@
                     <span style="font-size: 1.2rem; font-weight: 900;" id="btn-rate-manual">0.21</span>
                 </button>
             </div>
-            
             <div style="display: flex; align-items: center; gap: 12px; background: var(--price-bg); padding: 16px; border-radius: 16px; border: 2px solid var(--main-border);">
                 <div style="flex: 1;">
                     <label id="calc-label-src" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 800; display:block; margin-bottom: 6px;">外幣金額</label>
@@ -265,9 +274,11 @@
     </div>
 
     <div id="itinerary" class="page">
-        <button onclick="toggleForm('edit-iti-form-container', openItiForm)" style="width: 100%; margin-bottom: 24px; background: var(--color-matcha); border-color: var(--color-matcha);">
-            ＋ 加入新行程
-        </button>
+        <div class="sticky-panel">
+            <button onclick="toggleForm('edit-iti-form-container', openItiForm)" style="width: 100%; background: var(--color-matcha); border-color: var(--color-matcha);">
+                ＋ 加入新行程
+            </button>
+        </div>
         
         <div id="edit-iti-form-container" style="display: none; background: var(--input-bg); padding: 20px; border-radius: 16px; border: 2px solid var(--main-border); margin-bottom: 24px;">
             <h3 id="iti-form-title" style="margin-bottom: 16px; font-weight: 900;">新增行程</h3>
@@ -291,9 +302,13 @@
     </div>
 
     <div id="luggage" class="page">
-        <button onclick="toggleForm('edit-lug-form-container', openLugForm)" style="width: 100%; margin-bottom: 24px; background: var(--color-terracotta); border-color: var(--color-terracotta);">
-            ＋ 新增行李
-        </button>
+        <div class="sticky-panel">
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                <button onclick="addLuggageOwner()" class="btn-outline" style="flex: 1; padding: 10px; font-size: 0.9rem;">＋ 新增行李清單</button>
+                <button onclick="toggleForm('edit-lug-form-container', openLugForm)" style="flex: 1; background: var(--color-terracotta); border-color: var(--color-terracotta); padding: 10px; font-size: 0.9rem;">＋ 新增行李</button>
+            </div>
+            <div id="lug-owner-filter-bar" class="filter-scroll" style="padding-bottom:0;"></div>
+        </div>
 
         <div id="edit-lug-form-container" style="display: none; background: var(--input-bg); padding: 20px; border-radius: 16px; border: 2px solid var(--main-border); margin-bottom: 24px;">
             <h3 id="lug-form-title" style="margin-bottom: 16px; font-weight: 900;">新增行李</h3>
@@ -310,33 +325,29 @@
     </div>
 
     <div id="shopping" class="page">
-        <button onclick="toggleForm('edit-form-container', openAddForm)" style="width: 100%; margin-bottom: 24px; background: var(--color-babyblue); border-color: var(--color-babyblue);">
-            ＋ 新增商品
-        </button>
-        
-        <div id="shop-filter-bar" class="filter-scroll" style="padding-bottom: 5px;"></div>
-        <div id="shop-location-filter-bar" class="filter-scroll" style="padding-top: 5px; margin-bottom: 10px;"></div>
+        <div class="sticky-panel">
+            <button onclick="toggleForm('edit-form-container', openAddForm)" style="width: 100%; margin-bottom: 12px; background: var(--color-babyblue); border-color: var(--color-babyblue);">
+                ＋ 新增商品
+            </button>
+            <div id="shop-filter-bar" class="filter-scroll" style="padding-bottom: 5px;"></div>
+            <div id="shop-location-filter-bar" class="filter-scroll" style="padding-top: 5px; padding-bottom: 0;"></div>
+        </div>
 
         <div id="edit-form-container" style="display: none; background: var(--input-bg); padding: 20px; border-radius: 16px; border: 2px solid var(--main-border); margin-bottom: 24px;">
             <h3 id="form-title" style="margin-bottom: 16px; font-weight: 900;">新增商品</h3>
             <input type="hidden" id="edit-id">
             <input type="text" id="edit-name" placeholder="名稱">
-            
             <div style="display: flex; gap: 10px;">
                 <input type="number" id="edit-qty" placeholder="數量" style="flex:0.8;" min="1" value="1">
                 <input type="number" id="edit-price" placeholder="單價金額" style="flex:1.2;">
             </div>
-            
             <div style="display: flex; gap: 10px;">
                 <select id="edit-shop-for" style="flex: 1;"></select>
                 <input type="text" id="edit-shop" placeholder="購買地點 (如: 唐吉訶德)" style="flex: 2;">
             </div>
-            
             <input type="text" id="edit-note" placeholder="備註 (選填)">
-            
             <label style="font-size: 0.95rem; font-weight: 800; display: block; margin: 4px 0 8px 4px;">加入圖片 (選填)</label>
             <input type="file" id="edit-image" accept="image/*" style="padding: 12px; background: white; border: 2px dashed var(--main-border);">
-            
             <div style="display: flex; gap: 10px; margin-top: 16px;">
                 <button onclick="document.getElementById('edit-form-container').style.display='none'" class="btn-outline" style="flex: 1;">取消</button>
                 <button onclick="saveShoppingItem()" style="flex: 2; background: var(--color-babyblue); border-color: var(--color-babyblue);">儲存</button>
@@ -347,26 +358,22 @@
     </div>
 
     <div id="accounting" class="page">
-        <div class="card" style="background-image: linear-gradient(135deg, var(--color-acc) 0%, #9E8594 100%); color: #FFF; border: none; box-shadow: 0 8px 20px rgba(180, 155, 170, 0.4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-bottom: 4px;">目前的 <span id="acc-display-title">旅程總支出</span></p>
-                    <p style="font-size: 2.2rem; font-weight: 900; line-height: 1.1;"><span class="curr-sym">¥</span> <span id="acc-total-jpy">0</span></p>
-                    <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-top: 8px;">(皆為鎖定金額) 折合 NT$ <span id="acc-total-twd">0</span></p>
+        <div class="sticky-panel">
+            <div class="card" style="background-image: linear-gradient(135deg, var(--color-acc) 0%, #9E8594 100%); color: #FFF; border: none; box-shadow: 0 8px 20px rgba(180, 155, 170, 0.4); margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-bottom: 4px;">目前的 <span id="acc-display-title">旅程總支出</span></p>
+                        <p style="font-size: 2.2rem; font-weight: 900; line-height: 1.1;"><span class="curr-sym">¥</span> <span id="acc-total-jpy">0</span></p>
+                        <p style="font-size: 0.95rem; font-weight: 800; opacity: 0.9; margin-top: 8px;">(皆為鎖定金額) 折合 NT$ <span id="acc-total-twd">0</span></p>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="filter-scroll" id="acc-for-filter-bar" style="padding-bottom: 5px;"></div>
-        <div class="filter-scroll" id="acc-cat-filter-bar" style="padding-top: 5px;"></div>
-
-        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-            <button onclick="toggleForm('main-calc-panel')" style="flex: 1; background: var(--card-bg); color: var(--main-text); border: 2px solid var(--color-acc); box-shadow: 2px 3px 0 rgba(180, 155, 170, 0.2);">
-                🧮 計算機
-            </button>
-            <button onclick="toggleForm('edit-acc-form-container', openAccForm)" style="flex: 2; background: var(--color-acc); border-color: var(--color-acc); color: white; box-shadow: 2px 3px 0 rgba(180, 155, 170, 0.3);">
-                ＋ 記錄花費
-            </button>
+            <div class="filter-scroll" id="acc-for-filter-bar" style="padding-bottom: 5px;"></div>
+            <div class="filter-scroll" id="acc-cat-filter-bar" style="padding-top: 5px; padding-bottom: 12px;"></div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="toggleForm('main-calc-panel')" style="flex: 1; background: var(--card-bg); color: var(--main-text); border: 2px solid var(--color-acc); box-shadow: 2px 3px 0 rgba(180, 155, 170, 0.2);">🧮 計算機</button>
+                <button onclick="toggleForm('edit-acc-form-container', openAccForm)" style="flex: 2; background: var(--color-acc); border-color: var(--color-acc); color: white; box-shadow: 2px 3px 0 rgba(180, 155, 170, 0.3);">＋ 記錄花費</button>
+            </div>
         </div>
 
         <div id="main-calc-panel" style="display: none;" class="calc-panel">
@@ -375,43 +382,33 @@
             <button type="button" class="calc-btn op" onclick="calcInput('/')">÷</button>
             <button type="button" class="calc-btn op" onclick="calcInput('*')">×</button>
             <button type="button" class="calc-btn op" onclick="calcInput('DEL')">←</button>
-            
             <button type="button" class="calc-btn" onclick="calcInput('7')">7</button>
             <button type="button" class="calc-btn" onclick="calcInput('8')">8</button>
             <button type="button" class="calc-btn" onclick="calcInput('9')">9</button>
             <button type="button" class="calc-btn op" onclick="calcInput('-')">-</button>
-            
             <button type="button" class="calc-btn" onclick="calcInput('4')">4</button>
             <button type="button" class="calc-btn" onclick="calcInput('5')">5</button>
             <button type="button" class="calc-btn" onclick="calcInput('6')">6</button>
             <button type="button" class="calc-btn op" onclick="calcInput('+')">+</button>
-            
             <button type="button" class="calc-btn" onclick="calcInput('1')">1</button>
             <button type="button" class="calc-btn" onclick="calcInput('2')">2</button>
             <button type="button" class="calc-btn" onclick="calcInput('3')">3</button>
             <button type="button" class="calc-btn" onclick="calcInput('.')">.</button>
-            
             <button type="button" class="calc-btn eq" onclick="calcInput('=')" style="grid-column: span 2; background: var(--main-btn); border-color: var(--main-btn); color: white;">= 結算</button>
             <button type="button" class="calc-btn" onclick="calcInput('0')" style="grid-column: span 2;">0</button>
-            
-            <button type="button" class="calc-btn" onclick="useCalcAmount()" style="grid-column: span 4; background: var(--color-acc); color: white; border-color: var(--color-acc); margin-top: 8px; box-shadow: 2px 3px 0 rgba(180, 155, 170, 0.3);">
-                帶入並新增支出
-            </button>
+            <button type="button" class="calc-btn" onclick="useCalcAmount()" style="grid-column: span 4; background: var(--color-acc); color: white; border-color: var(--color-acc); margin-top: 8px; box-shadow: 2px 3px 0 rgba(180, 155, 170, 0.3);">帶入並新增支出</button>
         </div>
 
         <div id="edit-acc-form-container" style="display: none; background: var(--input-bg); padding: 20px; border-radius: 20px; border: 2px solid var(--main-border); margin-bottom: 24px;">
             <h3 id="acc-form-title" style="margin-bottom: 16px; font-weight: 900;">新增支出</h3>
             <input type="hidden" id="edit-acc-id">
             <input type="hidden" id="edit-acc-shopId">
-            
             <input type="text" id="edit-acc-name" placeholder="這筆錢花在哪？ (如: 一蘭拉麵)">
             <input type="number" id="edit-acc-jpy" placeholder="花費金額">
-
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                 <input type="date" id="edit-acc-date" style="flex: 1;">
                 <select id="edit-acc-forWho" style="flex: 0.8;"></select>
             </div>
-
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                 <select id="edit-acc-cat" style="flex: 1;"></select>
                 <select id="edit-acc-pay" style="flex: 1.2;">
@@ -419,9 +416,7 @@
                     <option value="cash">💵 付現 (固定現金匯率)</option>
                 </select>
             </div>
-            
             <input type="text" id="edit-acc-note" placeholder="備註用途 (選填)">
-            
             <div style="display: flex; gap: 10px; margin-top: 12px;">
                 <button type="button" onclick="document.getElementById('edit-acc-form-container').style.display='none'" class="btn-outline" style="flex: 1;">取消</button>
                 <button type="button" id="acc-save-btn" onclick="saveAccounting()" style="flex: 2; background: var(--color-acc); border-color: var(--color-acc); color: white;">儲存紀錄</button>
@@ -433,7 +428,6 @@
     <div id="settings" class="page">
         <div class="card">
             <h3 style="margin-bottom:20px; font-weight: 900; color: var(--color-acc);">🏷️ 自訂分類與排序</h3>
-            
             <label style="font-size: 0.95rem; font-weight: 800; display: block; margin: 0 0 8px 4px;">記帳項目 (如: 飲食, 住宿)</label>
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                 <input type="text" id="new-cat-input" placeholder="輸入記帳項目" style="margin: 0; flex: 1;">
@@ -451,19 +445,15 @@
 
         <div class="card">
             <h3 style="margin-bottom:20px; font-weight: 900;">⚙️ 匯率設定</h3>
-            
             <label style="font-size: 0.95rem; font-weight: 800; display: block; margin: 0 0 8px 4px;">手動設定匯率 (1 外幣 = ? TWD)</label>
             <div style="display: flex; gap: 12px; margin-bottom: 16px;">
                 <input type="number" step="0.0001" id="manual-rate-input" placeholder="例如: 0.215" style="margin: 0; flex: 2;">
                 <button onclick="saveManualRate()" style="flex: 1; background: var(--color-slate); border-color: var(--color-slate);">儲存</button>
             </div>
-
             <div style="text-align: center; margin: 16px 0; color: var(--text-muted); font-size: 0.85rem; font-weight: 700;">— 或 —</div>
-            
             <button id="update-rate-btn" onclick="fetchLiveRate()" class="btn-outline" style="width: 100%; margin-bottom: 16px; background: var(--card-bg);">
                 網路最新匯率
             </button>
-            
             <div style="background: var(--input-bg); padding: 16px; border-radius: 14px; border: 2px solid var(--main-border); margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-around; text-align: center;">
                     <div><p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 800;">網路匯率</p><p style="font-size: 1.3rem; font-weight: 900;" id="settings-rate-auto">0.21</p></div>
@@ -481,42 +471,12 @@
     </div>
 
     <nav class="bottom-nav">
-        <div id="nav-home" class="nav-item active" onclick="nav('home')">
-            <div class="nav-icon-bg" style="--bg-color: var(--color-yellow);">
-                <svg class="nav-svg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            </div>
-            <span>首頁</span>
-        </div>
-        <div id="nav-luggage" class="nav-item" onclick="nav('luggage')">
-            <div class="nav-icon-bg" style="--bg-color: var(--color-terracotta);">
-                <svg class="nav-svg" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="15" rx="2"></rect><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </div>
-            <span>行李</span>
-        </div>
-        <div id="nav-itinerary" class="nav-item" onclick="nav('itinerary')">
-            <div class="nav-icon-bg" style="--bg-color: var(--color-matcha);">
-                <svg class="nav-svg" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            </div>
-            <span>行程</span>
-        </div>
-        <div id="nav-shopping" class="nav-item" onclick="nav('shopping')">
-            <div class="nav-icon-bg" style="--bg-color: var(--color-babyblue);">
-                <svg class="nav-svg" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-            </div>
-            <span>購物</span>
-        </div>
-        <div id="nav-accounting" class="nav-item" onclick="nav('accounting')">
-            <div class="nav-icon-bg" style="--bg-color: var(--color-acc);">
-                <svg class="nav-svg" viewBox="0 0 24 24"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5z"></path><path d="M16 10h5v4h-5z"></path></svg>
-            </div>
-            <span>記帳</span>
-        </div>
-        <div id="nav-settings" class="nav-item" onclick="nav('settings')">
-            <div class="nav-icon-bg" style="--bg-color: var(--color-slate);">
-                <svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            </div>
-            <span>設定</span>
-        </div>
+        <div id="nav-home" class="nav-item active" onclick="nav('home')"><div class="nav-icon-bg" style="--bg-color: var(--color-yellow);"><svg class="nav-svg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div><span>首頁</span></div>
+        <div id="nav-luggage" class="nav-item" onclick="nav('luggage')"><div class="nav-icon-bg" style="--bg-color: var(--color-terracotta);"><svg class="nav-svg" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="15" rx="2"></rect><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div><span>行李</span></div>
+        <div id="nav-itinerary" class="nav-item" onclick="nav('itinerary')"><div class="nav-icon-bg" style="--bg-color: var(--color-matcha);"><svg class="nav-svg" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div><span>行程</span></div>
+        <div id="nav-shopping" class="nav-item" onclick="nav('shopping')"><div class="nav-icon-bg" style="--bg-color: var(--color-babyblue);"><svg class="nav-svg" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></div><span>購物</span></div>
+        <div id="nav-accounting" class="nav-item" onclick="nav('accounting')"><div class="nav-icon-bg" style="--bg-color: var(--color-acc);"><svg class="nav-svg" viewBox="0 0 24 24"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5z"></path><path d="M16 10h5v4h-5z"></path></svg></div><span>記帳</span></div>
+        <div id="nav-settings" class="nav-item" onclick="nav('settings')"><div class="nav-icon-bg" style="--bg-color: var(--color-slate);"><svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div><span>設定</span></div>
     </nav>
 
 <script>
@@ -533,33 +493,21 @@
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const DB_PATH = '/kinmenTripData';
+    
+    // 🔴 記得這裡要換回你自己的房間名稱！
+    const DB_PATH = '/japanTrip_ivy0407';
 
-    // 💯 預設豐富範例資料 (完整保留)
     const defaultData = { 
         currency: 'JPY',
         categories: ['飲食', '交通', '購物', '門票', '住宿', '其他'], 
         shopForCategories: ['自己買', '家人', '代購', '共同'],
+        luggageOwners: ['我的行李'], // 🧳 新增行李清單分類
         autoRates: { JPY: 0.2145, KRW: 0.0235, USD: 32.1, EUR: 34.5, THB: 0.91, TWD: 1 },
         manualRates: { JPY: 0.215, KRW: 0.024, USD: 32.5, EUR: 35.0, THB: 0.95, TWD: 1 },
-        luggage: [
-            { id: 1, name: "護照與簽證影本", note: "放在隨身小包", checked: false },
-            { id: 2, name: "外幣現金 & 信用卡", note: "確認是否有海外回饋", checked: false }
-        ], 
-        itinerary: [
-            { id: 1, date: "Day 1", realDate: "2026-04-05", time: "10:30", end: "成田國際機場", note: "先去買交通通票", checked: false },
-            { id: 2, date: "Day 1", realDate: "2026-04-05", time: "12:30", end: "一蘭拉麵", note: "記得加半熟蛋", checked: false },
-            { id: 3, date: "Day 2", realDate: "2026-04-06", time: "09:00", end: "淺草寺", note: "租和服", checked: false }
-        ], 
-        shopping: [
-            { id: 1, name: "EVE 止痛藥", qty: "2", price_jpy: "680", forWho: "自己買", shop: "大國藥妝", note: "白色包裝", image: "", checked: false },
-            { id: 2, name: "國際電壓吹風機", qty: "1", price_jpy: "15000", forWho: "家人", shop: "Bic Camera", note: "最新型號", image: "", checked: false },
-            { id: 3, name: "合利他命 EX", qty: "3", price_jpy: "4500", forWho: "代購", shop: "松本清", note: "朋友托買", image: "", checked: false }
-        ],
-        accounting: [
-            { id: 1, name: "機場快線車票", category: "交通", price_jpy: "2500", twd_price: 536, date: "2026-04-05", payMethod: "card", forWho: "自己買", note: "直達市區" },
-            { id: 2, name: "拉麵午餐", category: "飲食", price_jpy: "1200", twd_price: 258, date: "2026-04-05", payMethod: "cash", forWho: "共同", note: "" }
-        ]
+        luggage: [{ id: 1, name: "護照與簽證影本", note: "放在隨身小包", checked: false, owner: "我的行李" }], 
+        itinerary: [{ id: 1, date: "Day 1", realDate: "2026-04-05", time: "10:30", end: "成田國際機場", note: "先去買交通通票", checked: false }], 
+        shopping: [{ id: 1, name: "EVE 止痛藥", qty: "2", price_jpy: "680", forWho: "自己買", shop: "大國藥妝", note: "白色包裝", image: "", checked: false }],
+        accounting: [{ id: 1, name: "機場快線車票", category: "交通", price_jpy: "2500", twd_price: 536, date: "2026-04-05", payMethod: "card", forWho: "自己買", note: "直達市區" }]
     };
     
     let appData = defaultData; 
@@ -577,26 +525,24 @@
     let currentShopLocationFilter = '全部'; 
     let currentAccFilter = '全部';
     let currentAccForFilter = '全部';
+    let currentLugOwner = '我的行李';
     let calcMode = 'auto';
     let currentCalcStr = "0";
 
-    // 🔥 監聽雲端資料變化
     db.ref(DB_PATH).on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
             appData = data;
             if (!appData.categories) appData.categories = defaultData.categories;
             if (!appData.shopForCategories) appData.shopForCategories = defaultData.shopForCategories;
+            if (!appData.luggageOwners) appData.luggageOwners = defaultData.luggageOwners;
             if (!appData.autoRates) appData.autoRates = defaultData.autoRates;
             if (!appData.manualRates) appData.manualRates = defaultData.manualRates;
             if (!appData.accounting) appData.accounting = [];
             if (!appData.shopping) appData.shopping = [];
             if (!appData.itinerary) appData.itinerary = [];
             if (!appData.luggage) appData.luggage = [];
-            appData.accounting.forEach(a => { 
-                if(!a.payMethod) a.payMethod = 'cash'; 
-                if(!a.forWho) a.forWho = appData.shopForCategories[0] || '自己買'; 
-            });
+            if (!appData.luggageOwners.includes(currentLugOwner)) currentLugOwner = appData.luggageOwners[0] || '我的行李';
         } else {
             appData = defaultData;
             db.ref(DB_PATH).set(appData);
@@ -616,21 +562,44 @@
         document.getElementById('rate-sync-info').innerText = "✓ 雲端同步完成";
     });
 
-    // 無敵雙保險儲存
     function saveData() { 
-        localStorage.setItem('kmTravelApp', JSON.stringify(appData));
+        localStorage.setItem('jpTravelApp', JSON.stringify(appData));
         try { if (typeof db !== 'undefined') db.ref(DB_PATH).set(appData); } catch(e) {}
         updateStats(); 
     }
 
-    // 💯 渲染分類 (加入上下移動按鈕)
+    // --- 初始化拖曳排序 ---
+    function initDrag(containerId, arrName) {
+        const el = document.getElementById(containerId);
+        if(!el) return;
+        if(el._sortable) el._sortable.destroy();
+        el._sortable = Sortable.create(el, {
+            delay: 300, 
+            delayOnTouchOnly: true,
+            animation: 150,
+            ghostClass: 'ghost',
+            onEnd: function (evt) {
+                const domIds = Array.from(el.children).map(child => child.getAttribute('data-id')).filter(id => id);
+                const newArr = [];
+                domIds.forEach(id => {
+                    const item = appData[arrName].find(x => x.id == id);
+                    if(item) newArr.push(item);
+                });
+                appData[arrName].forEach(item => {
+                    if(!domIds.includes(item.id.toString())) newArr.push(item);
+                });
+                appData[arrName] = newArr;
+                saveData();
+            }
+        });
+    }
+
     function renderCategories() {
         const catList = document.getElementById('settings-cat-list');
         if (catList) {
             catList.innerHTML = '';
             appData.categories.forEach((cat, index) => {
-                const isFirst = index === 0;
-                const isLast = index === appData.categories.length - 1;
+                const isFirst = index === 0; const isLast = index === appData.categories.length - 1;
                 catList.innerHTML += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-bottom:1px solid rgba(200,182,166,0.3);">
                     <span style="font-weight:800; color:var(--main-text);">${cat}</span>
@@ -647,8 +616,7 @@
         if (shopForList) {
             shopForList.innerHTML = '';
             appData.shopForCategories.forEach((cat, index) => {
-                const isFirst = index === 0;
-                const isLast = index === appData.shopForCategories.length - 1;
+                const isFirst = index === 0; const isLast = index === appData.shopForCategories.length - 1;
                 shopForList.innerHTML += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-bottom:1px solid rgba(200,182,166,0.3);">
                     <span style="font-weight:800; color:var(--main-text);">${cat}</span>
@@ -664,14 +632,11 @@
         const accCatFilter = document.getElementById('acc-cat-filter-bar');
         if (accCatFilter) {
             accCatFilter.innerHTML = `<div class="filter-pill ${currentAccFilter === '全部' ? 'active' : ''} acc" onclick="setAccFilter('全部', this)">全部類別</div>`;
-            appData.categories.forEach(cat => {
-                accCatFilter.innerHTML += `<div class="filter-pill ${currentAccFilter === cat ? 'active' : ''} acc" onclick="setAccFilter('${cat}', this)">${cat}</div>`;
-            });
+            appData.categories.forEach(cat => { accCatFilter.innerHTML += `<div class="filter-pill ${currentAccFilter === cat ? 'active' : ''} acc" onclick="setAccFilter('${cat}', this)">${cat}</div>`; });
         }
         const accCatSelect = document.getElementById('edit-acc-cat');
         if (accCatSelect) {
-            const currentVal = accCatSelect.value;
-            accCatSelect.innerHTML = '';
+            const currentVal = accCatSelect.value; accCatSelect.innerHTML = '';
             appData.categories.forEach(cat => { accCatSelect.innerHTML += `<option value="${cat}">${cat}</option>`; });
             if (appData.categories.includes(currentVal)) accCatSelect.value = currentVal;
         }
@@ -679,14 +644,11 @@
         const shopForFilter = document.getElementById('shop-filter-bar');
         if (shopForFilter) {
             shopForFilter.innerHTML = `<div class="filter-pill ${currentShopForFilter === '全部' ? 'active' : ''} shop" onclick="setShopForFilter('全部', this)">全部清單</div>`;
-            appData.shopForCategories.forEach(cat => {
-                shopForFilter.innerHTML += `<div class="filter-pill ${currentShopForFilter === cat ? 'active' : ''} shop" onclick="setShopForFilter('${cat}', this)">${cat}</div>`;
-            });
+            appData.shopForCategories.forEach(cat => { shopForFilter.innerHTML += `<div class="filter-pill ${currentShopForFilter === cat ? 'active' : ''} shop" onclick="setShopForFilter('${cat}', this)">${cat}</div>`; });
         }
         const shopForSelect = document.getElementById('edit-shop-for');
         if (shopForSelect) {
-            const currentVal = shopForSelect.value;
-            shopForSelect.innerHTML = '';
+            const currentVal = shopForSelect.value; shopForSelect.innerHTML = '';
             appData.shopForCategories.forEach(cat => { shopForSelect.innerHTML += `<option value="${cat}">${cat}</option>`; });
             if (appData.shopForCategories.includes(currentVal)) shopForSelect.value = currentVal;
         }
@@ -694,54 +656,33 @@
         const accForFilter = document.getElementById('acc-for-filter-bar');
         if (accForFilter) {
             accForFilter.innerHTML = `<div class="filter-pill ${currentAccForFilter === '全部' ? 'active' : ''} acc" onclick="setAccForFilter('全部', this)">全部對象</div>`;
-            appData.shopForCategories.forEach(cat => {
-                accForFilter.innerHTML += `<div class="filter-pill ${currentAccForFilter === cat ? 'active' : ''} acc" onclick="setAccForFilter('${cat}', this)">${cat}</div>`;
-            });
+            appData.shopForCategories.forEach(cat => { accForFilter.innerHTML += `<div class="filter-pill ${currentAccForFilter === cat ? 'active' : ''} acc" onclick="setAccForFilter('${cat}', this)">${cat}</div>`; });
         }
         const accForSelect = document.getElementById('edit-acc-forWho');
         if (accForSelect) {
-            const currentVal = accForSelect.value;
-            accForSelect.innerHTML = '';
+            const currentVal = accForSelect.value; accForSelect.innerHTML = '';
             appData.shopForCategories.forEach(cat => { accForSelect.innerHTML += `<option value="${cat}">${cat}</option>`; });
             if (appData.shopForCategories.includes(currentVal)) accForSelect.value = currentVal;
         }
     }
 
-    // 💯 處理分類上下移動
     function moveCategory(index, direction, type) {
         const arrName = type === 'acc' ? 'categories' : 'shopForCategories';
-        const arr = appData[arrName];
-        const targetIndex = index + direction;
-        
+        const arr = appData[arrName]; const targetIndex = index + direction;
         if (targetIndex >= 0 && targetIndex < arr.length) {
-            const temp = arr[index];
-            arr[index] = arr[targetIndex];
-            arr[targetIndex] = temp;
-            
-            saveData();
-            renderCategories();
-            renderShopping();
-            renderAccounting();
+            const temp = arr[index]; arr[index] = arr[targetIndex]; arr[targetIndex] = temp;
+            saveData(); renderCategories(); renderShopping(); renderAccounting();
         }
     }
 
     function addCategory(type) {
         const inputId = type === 'acc' ? 'new-cat-input' : 'new-shopfor-input';
         const arrName = type === 'acc' ? 'categories' : 'shopForCategories';
-        const input = document.getElementById(inputId);
-        const val = input.value.trim();
-        
+        const input = document.getElementById(inputId); const val = input.value.trim();
         if (val) {
-            if (appData[arrName].includes(val)) {
-                alert("這個分類已經存在囉！");
-            } else {
-                appData[arrName].push(val);
-                input.value = '';
-                saveData(); 
-                renderCategories();
-                renderAccounting();
-                renderShopping();
-                alert(`已新增分類：${val}`);
+            if (appData[arrName].includes(val)) { alert("這個分類已經存在囉！"); } else {
+                appData[arrName].push(val); input.value = ''; saveData(); 
+                renderCategories(); renderAccounting(); renderShopping(); alert(`已新增分類：${val}`);
             }
         }
     }
@@ -756,10 +697,7 @@
                 if (currentShopForFilter === cat) currentShopForFilter = '全部';
                 if (currentAccForFilter === cat) currentAccForFilter = '全部';
             }
-            saveData();
-            renderCategories();
-            renderAccounting();
-            renderShopping();
+            saveData(); renderCategories(); renderAccounting(); renderShopping();
         }
     }
 
@@ -774,8 +712,7 @@
         activeNav.classList.add('active');
         const activeBg = activeNav.querySelector('.nav-icon-bg');
         activeBg.style.backgroundColor = getComputedStyle(activeBg).getPropertyValue('--bg-color');
-        
-        localStorage.setItem('kmTravelApp_lastTab', pageId);
+        localStorage.setItem('jpTravelApp_lastTab', pageId);
         
         if(pageId === 'itinerary') renderItinerary();
         if(pageId === 'luggage') renderLuggage();
@@ -796,7 +733,7 @@
         if (el.style.display === 'none' || el.style.display === '') {
             if (setupFunc) setupFunc();
             el.style.display = id === 'main-calc-panel' ? 'grid' : 'block'; 
-            window.scrollTo({ top: el.offsetTop - 20, behavior: 'smooth' });
+            window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
         } else { el.style.display = 'none'; }
     }
 
@@ -807,12 +744,8 @@
         if(key === 'C') { currentCalcStr = "0"; }
         else if(key === 'DEL') { currentCalcStr = currentCalcStr.length > 1 ? currentCalcStr.slice(0, -1) : "0"; }
         else if(key === '=') { 
-            try { 
-                const res = eval(currentCalcStr); 
-                currentCalcStr = Math.round(res).toString();
-            } catch(e) { currentCalcStr = "Error"; }
-        }
-        else { currentCalcStr = currentCalcStr === "0" ? key : currentCalcStr + key; }
+            try { const res = eval(currentCalcStr); currentCalcStr = Math.round(res).toString(); } catch(e) { currentCalcStr = "Error"; }
+        } else { currentCalcStr = currentCalcStr === "0" ? key : currentCalcStr + key; }
         display.innerText = currentCalcStr;
     }
 
@@ -824,36 +757,22 @@
             openAccForm(); 
             document.getElementById('edit-acc-jpy').value = rounded; 
             document.getElementById('main-calc-panel').style.display = 'none'; 
-            window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 20, behavior: 'smooth' });
-        } catch(e) {
-            alert("計算錯誤，請確認輸入內容！");
-        }
+            window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 80, behavior: 'smooth' });
+        } catch(e) { alert("計算錯誤，請確認輸入內容！"); }
     }
 
-    function changeCurrency() {
-        appData.currency = document.getElementById('currency-selector').value;
-        saveData();
-    }
+    function changeCurrency() { appData.currency = document.getElementById('currency-selector').value; saveData(); }
 
     function setCalcMode(mode) {
         calcMode = mode;
-        const btnAuto = document.getElementById('calc-btn-auto');
-        const btnManual = document.getElementById('calc-btn-manual');
-        
-        btnAuto.className = mode === 'auto' ? '' : 'btn-outline';
-        btnAuto.style.background = mode === 'auto' ? 'var(--main-btn)' : 'var(--card-bg)';
-        btnAuto.style.color = mode === 'auto' ? 'white' : 'var(--main-text)';
-        
-        btnManual.className = mode === 'manual' ? '' : 'btn-outline';
-        btnManual.style.background = mode === 'manual' ? 'var(--main-btn)' : 'var(--card-bg)';
-        btnManual.style.color = mode === 'manual' ? 'white' : 'var(--main-text)';
-        
+        const btnAuto = document.getElementById('calc-btn-auto'); const btnManual = document.getElementById('calc-btn-manual');
+        btnAuto.className = mode === 'auto' ? '' : 'btn-outline'; btnAuto.style.background = mode === 'auto' ? 'var(--main-btn)' : 'var(--card-bg)'; btnAuto.style.color = mode === 'auto' ? 'white' : 'var(--main-text)';
+        btnManual.className = mode === 'manual' ? '' : 'btn-outline'; btnManual.style.background = mode === 'manual' ? 'var(--main-btn)' : 'var(--card-bg)'; btnManual.style.color = mode === 'manual' ? 'white' : 'var(--main-text)';
         runCalculator('jpy');
     }
 
     function runCalculator(src = 'jpy') {
-        const c = appData.currency;
-        const rate = (calcMode === 'auto') ? appData.autoRates[c] : appData.manualRates[c];
+        const c = appData.currency; const rate = (calcMode === 'auto') ? appData.autoRates[c] : appData.manualRates[c];
         if (src === 'jpy') {
             const foreign = Number(document.getElementById('calc-input-jpy').value) || 0;
             document.getElementById('calc-input-twd').value = foreign ? Math.round(foreign * rate) : '';
@@ -863,19 +782,13 @@
         }
     }
 
-    // --- 🗓️ 行程功能 (恢復漂亮排版與範例) ---
+    // --- 🗓️ 行程功能 ---
     function renderItinerary() {
         const container = document.getElementById('itinerary-list'); container.innerHTML = '';
-        const sortedIti = [...appData.itinerary].sort((a, b) => {
-            if (a.checked !== b.checked) return a.checked ? 1 : -1;
-            if (a.date !== b.date) return a.date.localeCompare(b.date);
-            return a.time.localeCompare(b.time);
-        });
-
         let prevLocation = null;
         let currentDayLabel = "";
 
-        sortedIti.forEach((item) => {
+        appData.itinerary.forEach((item) => {
             let url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.end)}`;
             let btnHtml = `<button class="map-btn" onclick="window.open('${url}', '_blank')">📍 導航前往</button>`;
             
@@ -903,7 +816,7 @@
                 </div>` : '';
             
             container.innerHTML += `
-            <div class="timeline-container ${item.checked?'strikethrough':''}">
+            <div class="timeline-container ${item.checked?'strikethrough':''}" data-id="${item.id}">
                 <div class="timeline-left">
                     <div class="timeline-time">${item.time || '—'}</div>
                     <div class="timeline-line"></div>
@@ -917,9 +830,10 @@
                                 <span style="font-size:0.9rem; color:var(--text-muted); font-weight:700;">打卡確認</span>
                             </div>
                         </div>
-                        <div style="display:flex; gap:8px; margin-left:12px;">
-                            <button class="icon-btn" onclick="editIti(${item.id})">✎</button>
-                            <button class="icon-btn danger" onclick="deleteIti(${item.id})">✕</button>
+                        <div style="display:flex; gap:8px; margin-left:12px; flex-wrap:wrap; justify-content:flex-end;">
+                            <button class="icon-btn" onclick="duplicateIti(${item.id})" style="width:36px; height:36px; font-size: 1.2rem;" title="複製">⧉</button>
+                            <button class="icon-btn" onclick="editIti(${item.id})" style="width:36px; height:36px;">✎</button>
+                            <button class="icon-btn danger" onclick="deleteIti(${item.id})" style="width:36px; height:36px;">✕</button>
                         </div>
                     </div>
                     ${noteStr}
@@ -927,9 +841,14 @@
                 </div>
             </div>`;
         });
+        setTimeout(() => initDrag('itinerary-list', 'itinerary'), 50);
     }
     
     function toggleIti(id) { const i = appData.itinerary.find(x=>x.id==id); i.checked = !i.checked; saveData(); renderItinerary(); }
+    function duplicateIti(id) {
+        const item = appData.itinerary.find(i => i.id == id);
+        if(item) { appData.itinerary.push({...item, id: Date.now(), checked: false}); saveData(); renderItinerary(); }
+    }
     
     function openItiForm() {
         document.getElementById('iti-form-title').innerText = '新增行程';
@@ -950,14 +869,12 @@
         if(e){ 
             appData.itinerary.push({id:Date.now(), date:d, realDate:rd, time:t, end:e, note:n, checked:false}); 
             document.getElementById('edit-iti-form-container').style.display = 'none';
-            saveData(); 
-            renderItinerary();
+            saveData(); renderItinerary();
         }
     }
 
     function editIti(id) {
-        const item = appData.itinerary.find(i => i.id == id);
-        if(!item) return;
+        const item = appData.itinerary.find(i => i.id == id); if(!item) return;
         document.getElementById('iti-form-title').innerText = '編輯行程';
         document.getElementById('edit-iti-id').value = item.id;
         document.getElementById('edit-iti-day').value = item.date || 'Day 1';
@@ -965,13 +882,10 @@
         document.getElementById('edit-iti-time').value = item.time || '';
         document.getElementById('edit-iti-end').value = item.end || '';
         document.getElementById('edit-iti-note').value = item.note || '';
-        
         const btn = document.getElementById('iti-save-btn');
-        btn.setAttribute('onclick', 'saveEditIti()');
-        btn.innerText = '儲存';
-
+        btn.setAttribute('onclick', 'saveEditIti()'); btn.innerText = '儲存';
         document.getElementById('edit-iti-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-iti-form-container').offsetTop - 20, behavior: 'smooth' });
+        window.scrollTo({ top: document.getElementById('edit-iti-form-container').offsetTop - 80, behavior: 'smooth' });
     }
 
     function saveEditIti() {
@@ -987,20 +901,41 @@
             appData.itinerary[index].date = d; appData.itinerary[index].realDate = rd;
             appData.itinerary[index].time = t; appData.itinerary[index].end = e; appData.itinerary[index].note = n;
             document.getElementById('edit-iti-form-container').style.display = 'none';
-            saveData(); 
-            renderItinerary();
+            saveData(); renderItinerary();
+        }
+    }
+    function deleteIti(id) { if(confirm("確定要刪除這個行程嗎？")) { appData.itinerary = appData.itinerary.filter(i=>i.id!=id); saveData(); renderItinerary(); } }
+
+    // --- 🧳 行李功能 ---
+    function setLugOwner(owner) {
+        currentLugOwner = owner;
+        renderLuggage();
+    }
+    function addLuggageOwner() {
+        const name = prompt("請輸入新的行李清單名稱（例如：先生的行李）：");
+        if(name && name.trim()) {
+            if(!appData.luggageOwners.includes(name.trim())) {
+                appData.luggageOwners.push(name.trim());
+                currentLugOwner = name.trim();
+                saveData(); renderLuggage();
+            }
         }
     }
 
-    function deleteIti(id) { if(confirm("確定要刪除這個行程嗎？")) { appData.itinerary = appData.itinerary.filter(i=>i.id!=id); saveData(); renderItinerary(); } }
-
-    // --- 🧳 行李功能 (恢復漂亮排版與範例) ---
     function renderLuggage() {
+        const ownerBar = document.getElementById('lug-owner-filter-bar');
+        ownerBar.innerHTML = '';
+        appData.luggageOwners.forEach(owner => {
+            ownerBar.innerHTML += `<div class="filter-pill ${currentLugOwner === owner ? 'active' : ''} shop" style="border-color:var(--color-terracotta);" onclick="setLugOwner('${owner}')">${owner}</div>`;
+        });
+
         const container = document.getElementById('luggage-list'); container.innerHTML = '';
-        appData.luggage.forEach((item) => {
+        const filteredLuggage = appData.luggage.filter(l => (l.owner || '我的行李') === currentLugOwner);
+
+        filteredLuggage.forEach((item) => {
             const noteStr = item.note ? `<p style="font-size:0.95rem; color:var(--text-muted); font-weight:700; margin-top:6px;">📝 ${item.note}</p>` : '';
             container.innerHTML += `
-            <div class="card">
+            <div class="card" data-id="${item.id}">
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div style="display:flex; gap:16px; flex:1; align-items: center; min-width:0;">
                         <input type="checkbox" ${item.checked?'checked':''} onchange="toggleLug(${item.id})" class="${item.checked?'strikethrough':''}">
@@ -1009,52 +944,52 @@
                             ${noteStr}
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px; margin-left:12px; flex-shrink:0;">
-                        <button class="icon-btn" onclick="editLug(${item.id})">✎</button>
-                        <button class="icon-btn danger" onclick="deleteLug(${item.id})">✕</button>
+                    <div style="display:flex; gap:8px; margin-left:12px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end;">
+                        <button class="icon-btn" onclick="duplicateLug(${item.id})" style="width:36px; height:36px; font-size: 1.2rem;" title="複製">⧉</button>
+                        <button class="icon-btn" onclick="editLug(${item.id})" style="width:36px; height:36px;">✎</button>
+                        <button class="icon-btn danger" onclick="deleteLug(${item.id})" style="width:36px; height:36px;">✕</button>
                     </div>
                 </div>
             </div>`;
         });
+        setTimeout(() => initDrag('luggage-list', 'luggage'), 50);
     }
 
     function toggleLug(id) { const i = appData.luggage.find(x=>x.id==id); i.checked = !i.checked; saveData(); renderLuggage(); }
+    function duplicateLug(id) {
+        const item = appData.luggage.find(i => i.id == id);
+        if(item) { appData.luggage.push({...item, id: Date.now(), checked: false}); saveData(); renderLuggage(); }
+    }
     
     function openLugForm() {
-        document.getElementById('lug-form-title').innerText = '新增行李';
+        document.getElementById('lug-form-title').innerText = `新增行李 (${currentLugOwner})`;
         document.getElementById('edit-lug-id').value = '';
         document.getElementById('edit-lug-name').value = '';
         document.getElementById('edit-lug-note').value = '';
         const btn = document.getElementById('lug-save-btn');
-        btn.setAttribute('onclick', 'addLuggage()');
-        btn.innerText = '新增';
+        btn.setAttribute('onclick', 'addLuggage()'); btn.innerText = '新增';
     }
 
     function addLuggage() { 
         const v = document.getElementById('edit-lug-name').value; 
         const n = document.getElementById('edit-lug-note').value;
         if(v){ 
-            appData.luggage.push({id:Date.now(), name:v, note:n, checked:false}); 
+            appData.luggage.push({id:Date.now(), name:v, note:n, checked:false, owner: currentLugOwner}); 
             document.getElementById('edit-lug-form-container').style.display = 'none';
-            saveData(); 
-            renderLuggage();
+            saveData(); renderLuggage();
         }
     }
     
     function editLug(id) {
-        const item = appData.luggage.find(l => l.id == id);
-        if(!item) return;
+        const item = appData.luggage.find(l => l.id == id); if(!item) return;
         document.getElementById('lug-form-title').innerText = '編輯行李';
         document.getElementById('edit-lug-id').value = item.id;
         document.getElementById('edit-lug-name').value = item.name || '';
         document.getElementById('edit-lug-note').value = item.note || '';
-        
         const btn = document.getElementById('lug-save-btn');
-        btn.setAttribute('onclick', 'saveEditLug()');
-        btn.innerText = '儲存';
-        
+        btn.setAttribute('onclick', 'saveEditLug()'); btn.innerText = '儲存';
         document.getElementById('edit-lug-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-lug-form-container').offsetTop - 100, behavior: 'smooth' });
+        window.scrollTo({ top: document.getElementById('edit-lug-form-container').offsetTop - 80, behavior: 'smooth' });
     }
     
     function saveEditLug() {
@@ -1066,65 +1001,36 @@
         if(index > -1) {
             appData.luggage[index].name = name; appData.luggage[index].note = note;
             document.getElementById('edit-lug-form-container').style.display = 'none';
-            saveData(); 
-            renderLuggage();
+            saveData(); renderLuggage();
         }
     }
     function deleteLug(id) { if(confirm("確定要刪除這個項目嗎？")) { appData.luggage = appData.luggage.filter(l=>l.id!=id); saveData(); renderLuggage(); } }
 
     // --- 🛒 購物清單 ---
-    function setShopForFilter(forWho, el) {
-        currentShopForFilter = forWho;
-        document.querySelectorAll('#shop-filter-bar .filter-pill').forEach(p => p.classList.remove('active'));
-        el.classList.add('active');
-        renderShopping();
-    }
-
-    function setShopLocationFilter(loc, el) {
-        currentShopLocationFilter = loc;
-        document.querySelectorAll('#shop-location-filter-bar .filter-pill').forEach(p => p.classList.remove('active'));
-        el.classList.add('active');
-        renderShopping();
-    }
+    function setShopForFilter(forWho, el) { currentShopForFilter = forWho; document.querySelectorAll('#shop-filter-bar .filter-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); renderShopping(); }
+    function setShopLocationFilter(loc, el) { currentShopLocationFilter = loc; document.querySelectorAll('#shop-location-filter-bar .filter-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); renderShopping(); }
 
     function renderShopping() {
         const container = document.getElementById('shopping-list'); container.innerHTML = '';
-        const c = appData.currency;
-        const sym = currInfo[c].s;
+        const c = appData.currency; const sym = currInfo[c].s;
 
-        // 💯 自動掃描地點並產生第二排滑動列
         const locations = [...new Set(appData.shopping.map(s => s.shop).filter(s => s && s.trim() !== ''))];
         const locFilterBar = document.getElementById('shop-location-filter-bar');
         
-        if (currentShopLocationFilter !== '全部' && !locations.includes(currentShopLocationFilter)) {
-            currentShopLocationFilter = '全部';
-        }
+        if (currentShopLocationFilter !== '全部' && !locations.includes(currentShopLocationFilter)) { currentShopLocationFilter = '全部'; }
 
         if (locFilterBar) {
             locFilterBar.innerHTML = `<div class="filter-pill ${currentShopLocationFilter === '全部' ? 'active' : ''} shop" onclick="setShopLocationFilter('全部', this)">📍 全部地點</div>`;
-            locations.forEach(loc => {
-                locFilterBar.innerHTML += `<div class="filter-pill ${currentShopLocationFilter === loc ? 'active' : ''} shop" onclick="setShopLocationFilter('${loc}', this)">${loc}</div>`;
-            });
+            locations.forEach(loc => { locFilterBar.innerHTML += `<div class="filter-pill ${currentShopLocationFilter === loc ? 'active' : ''} shop" onclick="setShopLocationFilter('${loc}', this)">${loc}</div>`; });
         }
 
         let filteredByFor = appData.shopping || [];
-        if (currentShopForFilter !== '全部') {
-            filteredByFor = filteredByFor.filter(s => (s.forWho || '自己買') === currentShopForFilter);
-        }
-        if (currentShopLocationFilter !== '全部') {
-            filteredByFor = filteredByFor.filter(s => s.shop === currentShopLocationFilter);
-        }
+        if (currentShopForFilter !== '全部') { filteredByFor = filteredByFor.filter(s => (s.forWho || '自己買') === currentShopForFilter); }
+        if (currentShopLocationFilter !== '全部') { filteredByFor = filteredByFor.filter(s => s.shop === currentShopLocationFilter); }
         
         const unpurchased = filteredByFor.filter(s => !s.checked);
         const purchased = filteredByFor.filter(s => s.checked);
         
-        const getPriority = (forWho) => {
-            const index = appData.shopForCategories.indexOf(forWho);
-            return index !== -1 ? index : 99;
-        };
-        unpurchased.sort((a, b) => getPriority(a.forWho || '自己買') - getPriority(b.forWho || '自己買'));
-        purchased.sort((a, b) => getPriority(a.forWho || '自己買') - getPriority(b.forWho || '自己買'));
-
         const renderItem = (item) => {
             const itemQty = parseInt(item.qty) || 1;
             const price = Number(item.price_jpy || 0) * itemQty;
@@ -1143,7 +1049,7 @@
             const imgStr = item.image ? `<img src="${item.image}" class="img-thumbnail" onclick="showImage('${item.image}')">` : '';
             
             return `
-            <div class="card ${item.checked?'strikethrough':''}">
+            <div class="card ${item.checked?'strikethrough':''}" data-id="${item.id}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="display:flex; gap:16px; flex:1;">
                         <input type="checkbox" ${item.checked?'checked':''} onchange="toggleShop(${item.id})" style="margin-top:4px;">
@@ -1164,6 +1070,7 @@
                         </div>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:10px; margin-left:12px;">
+                        <button class="icon-btn" onclick="duplicateShop(${item.id})" style="font-size: 1.2rem;" title="複製">⧉</button>
                         <button class="icon-btn" onclick="editShop(${item.id})">✎</button>
                         <button class="icon-btn danger" onclick="deleteShop(${item.id})">✕</button>
                     </div>
@@ -1172,129 +1079,82 @@
         };
 
         if (unpurchased.length > 0) {
-            container.innerHTML += `<div class="clean-divider"><span>尚未購買</span></div>`;
-            unpurchased.forEach(item => { container.innerHTML += renderItem(item); });
+            container.innerHTML += `<div class="clean-divider"><span>尚未購買</span></div><div id="unpur-list"></div>`;
+            const unpurContainer = document.getElementById('unpur-list');
+            unpurchased.forEach(item => { unpurContainer.innerHTML += renderItem(item); });
+            setTimeout(() => initDrag('unpur-list', 'shopping'), 50);
         } else if (appData.shopping.length > 0) {
             container.innerHTML += `<div style="text-align:center; padding: 40px 0;"><p style="color:var(--main-text); font-weight:900; font-size:1.2rem;">所有商品都買齊囉！ 🎉</p></div>`;
         }
 
         if (purchased.length > 0) {
-            container.innerHTML += `<div class="clean-divider"><span>已完成清單</span></div>`;
-            purchased.forEach(item => { container.innerHTML += renderItem(item); });
+            container.innerHTML += `<div class="clean-divider"><span>已完成清單</span></div><div id="pur-list"></div>`;
+            const purContainer = document.getElementById('pur-list');
+            purchased.forEach(item => { purContainer.innerHTML += renderItem(item); });
+            setTimeout(() => initDrag('pur-list', 'shopping'), 50);
         }
     }
 
-    let pendingShopId = null;
     function toggleShop(id) { 
         const i = appData.shopping.find(s=>s.id==id);
-        if(i.checked) {
-            i.checked = false;
-            saveData(); 
-            renderShopping();
-        } else {
-            pendingShopId = id;
-            document.getElementById('shop-modal-name').innerText = i.name;
-            document.getElementById('shop-to-acc-modal').style.display = 'flex';
-        }
+        if(i.checked) { i.checked = false; saveData(); renderShopping(); } 
+        else { pendingShopId = id; document.getElementById('shop-modal-name').innerText = i.name; document.getElementById('shop-to-acc-modal').style.display = 'flex'; }
+    }
+    
+    function duplicateShop(id) {
+        const item = appData.shopping.find(i => i.id == id);
+        if(item) { appData.shopping.unshift({...item, id: Date.now(), checked: false}); saveData(); renderShopping(); }
     }
 
-    function closeShopModal() {
-        document.getElementById('shop-to-acc-modal').style.display = 'none';
-        pendingShopId = null;
-    }
+    function closeShopModal() { document.getElementById('shop-to-acc-modal').style.display = 'none'; pendingShopId = null; }
 
     async function shopToAccDirect() {
-        const i = appData.shopping.find(s=>s.id==pendingShopId);
-        i.checked = true;
-        const totalForeign = (Number(i.price_jpy)||0) * (parseInt(i.qty)||1);
-        const c = appData.currency;
-        
+        const i = appData.shopping.find(s=>s.id==pendingShopId); i.checked = true;
+        const totalForeign = (Number(i.price_jpy)||0) * (parseInt(i.qty)||1); const c = appData.currency;
         let rateToUse = appData.autoRates[c]; 
         try { 
-            const btn = document.getElementById('update-rate-btn');
-            if(btn) btn.innerText = "連線結算中...";
-            const r = await fetch('https://api.exchangerate-api.com/v4/latest/TWD'); 
-            const d = await r.json(); 
-            if(d.rates && d.rates[c]) {
-                rateToUse = Math.round((1 / d.rates[c]) * 10000)/10000;
-                appData.autoRates[c] = rateToUse;
-            }
+            const btn = document.getElementById('update-rate-btn'); if(btn) btn.innerText = "連線結算中...";
+            const r = await fetch('https://api.exchangerate-api.com/v4/latest/TWD'); const d = await r.json(); 
+            if(d.rates && d.rates[c]) { rateToUse = Math.round((1 / d.rates[c]) * 10000)/10000; appData.autoRates[c] = rateToUse; }
             if(btn) btn.innerText = "網路最新匯率";
         } catch(e) {}
         
-        const twdFixed = Math.round(totalForeign * rateToUse);
-        
         appData.accounting.unshift({
-            id: Date.now(),
-            name: i.name,
-            price_jpy: totalForeign,
-            twd_price: twdFixed,
-            date: new Date().toISOString().split('T')[0],
-            category: '購物',
-            payMethod: 'card',
-            forWho: i.forWho || '自己買',
-            shopId: i.id,
-            note: '來自購物清單'
+            id: Date.now(), name: i.name, price_jpy: totalForeign, twd_price: Math.round(totalForeign * rateToUse),
+            date: new Date().toISOString().split('T')[0], category: '購物', payMethod: 'card', forWho: i.forWho || '自己買', shopId: i.id, note: '來自購物清單'
         });
         
-        closeShopModal(); 
-        saveData(); 
-        renderShopping();
-        renderAccounting(); 
+        closeShopModal(); saveData(); renderShopping(); renderAccounting(); 
         alert("✅ 已成功鎖定匯率與金額，並加入記帳本！\n(可隨時在記帳分頁撤回)");
     }
 
     function shopToAccEdit() {
-        const i = appData.shopping.find(s=>s.id==pendingShopId);
-        closeShopModal(); 
-        nav('accounting');
-        openAccForm();
-        document.getElementById('edit-acc-name').value = i.name;
-        document.getElementById('edit-acc-jpy').value = (Number(i.price_jpy)||0) * (parseInt(i.qty)||1);
-        document.getElementById('edit-acc-cat').value = '購物';
-        document.getElementById('edit-acc-pay').value = 'card';
-        document.getElementById('edit-acc-forWho').value = i.forWho || '自己買';
-        document.getElementById('edit-acc-note').value = '來自購物清單';
+        const i = appData.shopping.find(s=>s.id==pendingShopId); closeShopModal(); nav('accounting'); openAccForm();
+        document.getElementById('edit-acc-name').value = i.name; document.getElementById('edit-acc-jpy').value = (Number(i.price_jpy)||0) * (parseInt(i.qty)||1);
+        document.getElementById('edit-acc-cat').value = '購物'; document.getElementById('edit-acc-pay').value = 'card';
+        document.getElementById('edit-acc-forWho').value = i.forWho || '自己買'; document.getElementById('edit-acc-note').value = '來自購物清單';
         document.getElementById('edit-acc-shopId').value = i.id; 
-        
-        document.getElementById('edit-acc-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 20, behavior: 'smooth' });
+        document.getElementById('edit-acc-form-container').style.display = 'block'; window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 80, behavior: 'smooth' });
     }
 
-    function shopToAccSkip() {
-        const i = appData.shopping.find(s=>s.id==pendingShopId);
-        i.checked = true;
-        closeShopModal(); 
-        saveData(); 
-        renderShopping();
-    }
+    function shopToAccSkip() { const i = appData.shopping.find(s=>s.id==pendingShopId); i.checked = true; closeShopModal(); saveData(); renderShopping(); }
     
     function openAddForm() { 
         document.getElementById('form-title').innerText = '新增商品';
-        document.getElementById('edit-id').value = '';
-        document.getElementById('edit-name').value = '';
-        document.getElementById('edit-qty').value = '1'; 
-        document.getElementById('edit-price').value = '';
+        document.getElementById('edit-id').value = ''; document.getElementById('edit-name').value = '';
+        document.getElementById('edit-qty').value = '1'; document.getElementById('edit-price').value = '';
         document.getElementById('edit-shop-for').value = appData.shopForCategories[0] || '自己買';
-        document.getElementById('edit-shop').value = '';
-        document.getElementById('edit-note').value = '';
-        document.getElementById('edit-image').value = '';
+        document.getElementById('edit-shop').value = ''; document.getElementById('edit-note').value = ''; document.getElementById('edit-image').value = '';
     }
 
     function editShop(id) {
-        const item = appData.shopping.find(s => s.id == id);
-        if(!item) return;
+        const item = appData.shopping.find(s => s.id == id); if(!item) return;
         document.getElementById('form-title').innerText = '編輯商品';
-        document.getElementById('edit-id').value = item.id;
-        document.getElementById('edit-name').value = item.name || '';
-        document.getElementById('edit-qty').value = item.qty || '1'; 
-        document.getElementById('edit-price').value = item.price_jpy || '';
+        document.getElementById('edit-id').value = item.id; document.getElementById('edit-name').value = item.name || '';
+        document.getElementById('edit-qty').value = item.qty || '1'; document.getElementById('edit-price').value = item.price_jpy || '';
         document.getElementById('edit-shop-for').value = item.forWho || (appData.shopForCategories[0] || '自己買');
-        document.getElementById('edit-shop').value = item.shop || '';
-        document.getElementById('edit-note').value = item.note || '';
-        document.getElementById('edit-image').value = ''; 
-        document.getElementById('edit-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-form-container').offsetTop - 20, behavior: 'smooth' });
+        document.getElementById('edit-shop').value = item.shop || ''; document.getElementById('edit-note').value = item.note || ''; document.getElementById('edit-image').value = ''; 
+        document.getElementById('edit-form-container').style.display = 'block'; window.scrollTo({ top: document.getElementById('edit-form-container').offsetTop - 80, behavior: 'smooth' });
     }
     
     function compressImage(file, callback) {
@@ -1302,14 +1162,11 @@
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1200; const MAX_HEIGHT = 1200;
+                const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const MAX_HEIGHT = 1200;
                 let width = img.width; let height = img.height;
                 if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
                 else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                 callback(canvas.toDataURL('image/jpeg', 0.92)); 
             };
             img.src = e.target.result;
@@ -1318,13 +1175,10 @@
     }
 
     function saveShoppingItem() {
-        const id = document.getElementById('edit-id').value;
-        const n = document.getElementById('edit-name').value;
-        const q = document.getElementById('edit-qty').value || 1; 
-        const p = document.getElementById('edit-price').value;
+        const id = document.getElementById('edit-id').value; const n = document.getElementById('edit-name').value;
+        const q = document.getElementById('edit-qty').value || 1; const p = document.getElementById('edit-price').value;
         const fw = document.getElementById('edit-shop-for').value || (appData.shopForCategories[0] || '自己買');
-        const s = document.getElementById('edit-shop').value;
-        const note = document.getElementById('edit-note').value;
+        const s = document.getElementById('edit-shop').value; const note = document.getElementById('edit-note').value;
         const fileInput = document.getElementById('edit-image');
         
         if(!n) { alert("請至少輸入商品名稱！"); return; }
@@ -1333,20 +1187,14 @@
             if(id) {
                 const index = appData.shopping.findIndex(x => x.id == id);
                 if(index > -1) {
-                    appData.shopping[index].name = n; appData.shopping[index].qty = q;
-                    appData.shopping[index].price_jpy = p; appData.shopping[index].forWho = fw; 
-                    appData.shopping[index].shop = s; appData.shopping[index].note = note;
+                    appData.shopping[index].name = n; appData.shopping[index].qty = q; appData.shopping[index].price_jpy = p; 
+                    appData.shopping[index].forWho = fw; appData.shopping[index].shop = s; appData.shopping[index].note = note;
                     if(imgData) appData.shopping[index].image = imgData; 
                 }
-            } else {
-                appData.shopping.unshift({id:Date.now(), name:n, qty:q, price_jpy:p, forWho:fw, shop:s, note:note, image:imgData, checked:false}); 
-            }
-            document.getElementById('edit-form-container').style.display='none'; 
-            saveData(); 
-            renderShopping();
+            } else { appData.shopping.unshift({id:Date.now(), name:n, qty:q, price_jpy:p, forWho:fw, shop:s, note:note, image:imgData, checked:false}); }
+            document.getElementById('edit-form-container').style.display='none'; saveData(); renderShopping();
         };
-        if(fileInput.files && fileInput.files[0]) { compressImage(fileInput.files[0], saveToData); } 
-        else { saveToData(''); }
+        if(fileInput.files && fileInput.files[0]) { compressImage(fileInput.files[0], saveToData); } else { saveToData(''); }
     }
     
     function deleteShop(id) { if(confirm("確定要刪除這個商品嗎？")) { appData.shopping = appData.shopping.filter(s=>s.id!=id); saveData(); renderShopping(); } }
@@ -1366,7 +1214,7 @@
         
         let totalF = 0, totalT = 0;
         
-        filtered.sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => {
+        filtered.forEach(item => {
             const price = Number(item.price_jpy) || 0; totalF += price;
             let twdFixed = item.twd_price; 
             if (twdFixed === undefined) { 
@@ -1378,7 +1226,7 @@
             const undoBtn = item.shopId ? `<button class="icon-btn" onclick="undoAcc(${item.id}, ${item.shopId})" style="width:36px; height:36px; font-size:1.1rem;" title="撤回至購物清單">↩</button>` : '';
             
             container.innerHTML += `
-            <div class="card" style="padding: 16px 20px;">
+            <div class="card" style="padding: 16px 20px;" data-id="${item.id}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="flex:1;">
                         <div style="display:flex; align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
@@ -1397,6 +1245,7 @@
                         ${item.note ? `<p style="font-size:0.9rem; color:var(--text-muted); font-weight:700; margin-top:8px;">📝 ${item.note}</p>` : ''}
                     </div>
                     <div style="display:flex; flex-direction:column; gap:8px; margin-left:12px;">
+                        <button class="icon-btn" onclick="duplicateAcc(${item.id})" style="width:36px; height:36px; font-size: 1.2rem;" title="複製">⧉</button>
                         <button class="icon-btn" onclick="editAcc(${item.id})" style="width:36px; height:36px;">✎</button>
                         ${undoBtn}
                         <button class="icon-btn danger" onclick="deleteAcc(${item.id})" style="width:36px; height:36px;">✕</button>
@@ -1404,6 +1253,8 @@
                 </div>
             </div>`;
         });
+        
+        setTimeout(() => initDrag('accounting-list', 'accounting'), 50);
 
         const isAll = (currentAccFilter === '全部' && currentAccForFilter === '全部');
         document.getElementById('acc-display-title').innerText = isAll ? '旅程總支出' : `目前篩選合計`;
@@ -1413,10 +1264,8 @@
     
     function openAccForm() { 
         document.getElementById('acc-form-title').innerText = '新增支出';
-        document.getElementById('edit-acc-id').value = ''; 
-        document.getElementById('edit-acc-shopId').value = ''; 
-        document.getElementById('edit-acc-name').value = ''; 
-        document.getElementById('edit-acc-jpy').value = ''; 
+        document.getElementById('edit-acc-id').value = ''; document.getElementById('edit-acc-shopId').value = ''; 
+        document.getElementById('edit-acc-name').value = ''; document.getElementById('edit-acc-jpy').value = ''; 
         document.getElementById('edit-acc-date').value = new Date().toISOString().split('T')[0]; 
         document.getElementById('edit-acc-pay').value = 'card'; 
         const forWhoSelect = document.getElementById('edit-acc-forWho');
@@ -1425,11 +1274,15 @@
         if(appData.categories && appData.categories.length > 0) catSelect.value = appData.categories[0];
     }
 
+    function duplicateAcc(id) {
+        const item = appData.accounting.find(i => i.id == id);
+        if(item) { appData.accounting.unshift({...item, id: Date.now(), shopId: null}); saveData(); renderAccounting(); }
+    }
+
     function editAcc(id) {
         const item = appData.accounting.find(a => a.id == id); if(!item) return;
         document.getElementById('acc-form-title').innerText = '編輯支出';
-        document.getElementById('edit-acc-id').value = item.id; 
-        document.getElementById('edit-acc-shopId').value = item.shopId || '';
+        document.getElementById('edit-acc-id').value = item.id; document.getElementById('edit-acc-shopId').value = item.shopId || '';
         document.getElementById('edit-acc-date').value = item.date || '';
         document.getElementById('edit-acc-cat').value = item.category || (appData.categories[0] || '其他');
         document.getElementById('edit-acc-pay').value = item.payMethod || 'card';
@@ -1438,36 +1291,27 @@
         document.getElementById('edit-acc-name').value = item.name || '';
         document.getElementById('edit-acc-note').value = item.note || '';
         document.getElementById('edit-acc-form-container').style.display = 'block';
-        window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 20, behavior: 'smooth' });
+        window.scrollTo({ top: document.getElementById('edit-acc-form-container').offsetTop - 80, behavior: 'smooth' });
     }
 
     async function saveAccounting() {
-        const id = document.getElementById('edit-acc-id').value;
-        const shopId = document.getElementById('edit-acc-shopId').value;
-        const name = document.getElementById('edit-acc-name').value;
-        const jpy = document.getElementById('edit-acc-jpy').value;
-        const date = document.getElementById('edit-acc-date').value;
-        const cat = document.getElementById('edit-acc-cat').value;
-        const pay = document.getElementById('edit-acc-pay').value;
-        const forWho = document.getElementById('edit-acc-forWho').value || (appData.shopForCategories[0] || '自己買');
+        const id = document.getElementById('edit-acc-id').value; const shopId = document.getElementById('edit-acc-shopId').value;
+        const name = document.getElementById('edit-acc-name').value; const jpy = document.getElementById('edit-acc-jpy').value;
+        const date = document.getElementById('edit-acc-date').value; const cat = document.getElementById('edit-acc-cat').value;
+        const pay = document.getElementById('edit-acc-pay').value; const forWho = document.getElementById('edit-acc-forWho').value || (appData.shopForCategories[0] || '自己買');
         const note = document.getElementById('edit-acc-note').value; 
         
         if(!jpy) return alert("請輸入金額喔！");
 
-        const c = appData.currency;
-        let rateToUse = appData.manualRates[c];
+        const c = appData.currency; let rateToUse = appData.manualRates[c];
 
         if (pay === 'card') {
-            const saveBtn = document.getElementById('acc-save-btn');
-            const orgText = saveBtn.innerText;
-            saveBtn.innerText = '連線結算中...';
+            const saveBtn = document.getElementById('acc-save-btn'); const orgText = saveBtn.innerText; saveBtn.innerText = '連線結算中...';
             try { 
-                const r = await fetch('https://api.exchangerate-api.com/v4/latest/TWD'); 
-                const d = await r.json(); 
+                const r = await fetch('https://api.exchangerate-api.com/v4/latest/TWD'); const d = await r.json(); 
                 if(d.rates && d.rates[c]) { appData.autoRates[c] = Math.round((1 / d.rates[c]) * 10000)/10000; }
             } catch(e) { console.log("Offline, using cached auto rate."); }
-            rateToUse = appData.autoRates[c];
-            saveBtn.innerText = orgText;
+            rateToUse = appData.autoRates[c]; saveBtn.innerText = orgText;
         }
 
         const twd = Math.round(Number(jpy) * rateToUse);
@@ -1475,19 +1319,14 @@
         
         if (shopId) {
             entry.shopId = Number(shopId);
-            const shopItem = appData.shopping.find(s => s.id == shopId);
-            if(shopItem) shopItem.checked = true;
+            const shopItem = appData.shopping.find(s => s.id == shopId); if(shopItem) shopItem.checked = true;
         }
 
         if(id) { appData.accounting = appData.accounting.map(a => a.id == id ? entry : a); }
         else { appData.accounting.unshift(entry); }
         
-        document.getElementById('edit-acc-shopId').value = '';
-        document.getElementById('edit-acc-form-container').style.display='none';
-        
-        saveData(); 
-        renderAccounting(); 
-        if(shopId) renderShopping();
+        document.getElementById('edit-acc-shopId').value = ''; document.getElementById('edit-acc-form-container').style.display='none';
+        saveData(); renderAccounting(); if(shopId) renderShopping();
     }
 
     function deleteAcc(id) { if(confirm("確定刪除這筆紀錄？")) { appData.accounting = appData.accounting.filter(a => a.id != id); saveData(); renderAccounting(); } }
@@ -1522,10 +1361,8 @@
         const statAccJpy = document.getElementById('stat-acc-jpy'); if (statAccJpy) statAccJpy.innerText = totalF.toLocaleString();
         const statAccTwd = document.getElementById('stat-acc-twd'); if (statAccTwd) statAccTwd.innerText = totalT.toLocaleString();
 
-        document.getElementById('btn-rate-auto').innerText = appData.autoRates[c] || 0.21;
-        document.getElementById('btn-rate-manual').innerText = appData.manualRates[c] || 0.21;
-        document.getElementById('settings-rate-auto').innerText = appData.autoRates[c] || 0.21;
-        document.getElementById('settings-rate-manual').innerText = appData.manualRates[c] || 0.21;
+        document.getElementById('btn-rate-auto').innerText = appData.autoRates[c] || 0.21; document.getElementById('btn-rate-manual').innerText = appData.manualRates[c] || 0.21;
+        document.getElementById('settings-rate-auto').innerText = appData.autoRates[c] || 0.21; document.getElementById('settings-rate-manual').innerText = appData.manualRates[c] || 0.21;
         document.getElementById('manual-rate-input').value = appData.manualRates[c] || 0.21;
         
         runCalculator('jpy');
@@ -1548,7 +1385,7 @@
                 appData.autoRates.EUR = Math.round((1 / d.rates.EUR) * 10000)/10000;
                 appData.autoRates.THB = Math.round((1 / d.rates.THB) * 10000)/10000;
                 appData.autoRates.TWD = 1;
-                saveData(); 
+                updateStats(); 
                 if(btn) { btn.innerText = "✓ 已更新"; setTimeout(() => { btn.innerText = "網路最新匯率"; }, 3000); }
                 if(info) { const now = new Date(); info.innerText = "最後自動更新: " + now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'); }
             }
@@ -1567,7 +1404,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        const lastTab = localStorage.getItem('kmTravelApp_lastTab') || 'home'; nav(lastTab);
+        const lastTab = localStorage.getItem('jpTravelApp_lastTab') || 'home'; nav(lastTab);
         setCalcMode('auto'); fetchLiveRate();
     });
 </script>
