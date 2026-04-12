@@ -565,7 +565,7 @@
         currency: 'JPY',
         categories: ['飲食', '交通', '購物', '門票', '住宿', '其他'], 
         shopForCategories: ['自己買', '家人', '代購', '共同'],
-        luggageOwners: ['我的行李'], // 新增行李清單分類
+        luggageOwners: ['我的行李'], 
         autoRates: { JPY: 0.2145, KRW: 0.0235, USD: 32.1, EUR: 34.5, THB: 0.91, TWD: 1 },
         manualRates: { JPY: 0.215, KRW: 0.024, USD: 32.5, EUR: 35.0, THB: 0.95, TWD: 1 },
         luggage: [
@@ -596,7 +596,6 @@
     let currentLugOwner = '我的行李';
     let calcMode = 'auto'; let currentCalcStr = "0";
 
-    // 🔥 監聽雲端資料變化
     db.ref(DB_PATH).on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -636,7 +635,6 @@
         updateStats(); 
     }
 
-    // --- 拖曳排序初始化 ---
     function initDrag(containerId, arrName) {
         const el = document.getElementById(containerId);
         if(!el) return;
@@ -662,7 +660,6 @@
         });
     }
 
-    // 💯 渲染分類
     function renderCategories() {
         const catList = document.getElementById('settings-cat-list');
         if (catList) {
@@ -851,28 +848,24 @@
         }
     }
 
-// --- 🗓️ 行程功能（自動排序 + 恢復天數標題 + 恢復導航按鈕） ---
+    // --- 🗓️ 行程功能 ---
     function renderItinerary() {
-        const c = document.getElementById('itinerary-list');
-        c.innerHTML = '';
+        const c = document.getElementById('itinerary-list'); c.innerHTML = '';
         
-        // 💡 1. 在顯示前先按「天數」和「時間」進行排序
+        // 💡 打勾往後排功能恢復
         const sortedIti = [...appData.itinerary].sort((a, b) => {
+            if (a.checked !== b.checked) return a.checked ? 1 : -1;
             const dayA = a.date || ""; const dayB = b.date || "";
             if (dayA !== dayB) return dayA.localeCompare(dayB, undefined, {numeric: true});
             const timeA = a.time || "00:00"; const timeB = b.time || "00:00";
             return timeA.localeCompare(timeB); 
         });
 
-        let prevLocation = null;
-        let currentDayLabel = "";
+        let prevLocation = null; let currentDayLabel = "";
 
         sortedIti.forEach(i => {
-            // 💡 2. 恢復：如果換了一天，就印出「Day X」的漂亮大標題
             if(i.date !== currentDayLabel) {
-                currentDayLabel = i.date;
-                const shortDate = formatShortDate(i.realDate);
-                const displayTitle = shortDate ? `${i.date} (${shortDate})` : i.date;
+                currentDayLabel = i.date; const shortDate = formatShortDate(i.realDate); const displayTitle = shortDate ? `${i.date} (${shortDate})` : i.date;
                 c.innerHTML += `
                 <div style="background: var(--card-bg); border: 2px solid var(--main-border); border-radius: 20px; display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; margin: 24px 0 20px; box-shadow: 2px 3px 0 rgba(200, 182, 166, 0.3);">
                     <span style="color: var(--main-border); font-weight: 900; font-size:1.1rem;"><</span>
@@ -881,7 +874,6 @@
                 </div>`;
             }
 
-            // 💡 3. 恢復：Google Map 導航按鈕邏輯
             let url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.end)}`;
             let btnHtml = `<button class="map-btn" onclick="window.open('${url}', '_blank')">📍 導航前往</button>`;
             if (prevLocation && !i.checked) {
@@ -891,8 +883,7 @@
             prevLocation = i.end;
 
             const noteStr = i.note ? `<div style="background:var(--bg-cream); padding:12px 14px; border-radius:12px; margin:16px 0 12px 0; font-weight:700; font-size:0.95rem; color:var(--main-text); border: 1px dashed var(--main-border); display:flex; align-items:flex-start; gap:8px;"><span>💡 ${i.note}</span></div>` : '';
-
-            // 💡 4. 卡片本體
+            
             c.innerHTML += `
             <div class="timeline-container ${i.checked?'strikethrough':''}" data-id="${i.id}">
                 <div class="timeline-left">
@@ -919,8 +910,6 @@
                 </div>
             </div>`;
         });
-        
-        // 保持手動拖曳功能
         initDrag('itinerary-list', 'itinerary');
     }
     
@@ -928,12 +917,8 @@
     
     function openItiForm() {
         document.getElementById('iti-form-title').innerText = '新增行程';
-        document.getElementById('edit-iti-id').value = '';
-        document.getElementById('edit-iti-end').value = '';
-        document.getElementById('edit-iti-note').value = '';
-        const btn = document.getElementById('iti-save-btn');
-        btn.setAttribute('onclick', 'addItinerary()');
-        btn.innerText = '新增';
+        document.getElementById('edit-iti-id').value = ''; document.getElementById('edit-iti-end').value = ''; document.getElementById('edit-iti-note').value = '';
+        const btn = document.getElementById('iti-save-btn'); btn.setAttribute('onclick', 'addItinerary()'); btn.innerText = '新增';
     }
 
     function addItinerary() { 
@@ -941,8 +926,7 @@
         const t = document.getElementById('edit-iti-time').value; const e = document.getElementById('edit-iti-end').value; const n = document.getElementById('edit-iti-note').value;
         if(e){ 
             appData.itinerary.push({id:Date.now(), date:d, realDate:rd, time:t, end:e, note:n, checked:false}); 
-            document.getElementById('edit-iti-form-container').style.display = 'none';
-            saveData(); renderItinerary();
+            document.getElementById('edit-iti-form-container').style.display = 'none'; saveData(); renderItinerary();
         }
     }
 
@@ -952,8 +936,7 @@
         document.getElementById('edit-iti-id').value = item.id;
         document.getElementById('edit-iti-day').value = item.date || 'Day 1'; document.getElementById('edit-iti-date').value = item.realDate || '';
         document.getElementById('edit-iti-time').value = item.time || ''; document.getElementById('edit-iti-end').value = item.end || ''; document.getElementById('edit-iti-note').value = item.note || '';
-        const btn = document.getElementById('iti-save-btn');
-        btn.setAttribute('onclick', 'saveEditIti()'); btn.innerText = '儲存';
+        const btn = document.getElementById('iti-save-btn'); btn.setAttribute('onclick', 'saveEditIti()'); btn.innerText = '儲存';
         document.getElementById('edit-iti-form-container').style.display = 'block'; window.scrollTo({ top: document.getElementById('edit-iti-form-container').offsetTop - 80, behavior: 'smooth' });
     }
 
@@ -969,7 +952,7 @@
 
     function duplicateIti(id) {
         const item = appData.itinerary.find(i => i.id == id); if(!item) return;
-        openItiForm(); // 清除 ID，變成新增模式
+        openItiForm(); 
         document.getElementById('edit-iti-day').value = item.date || 'Day 1'; document.getElementById('edit-iti-time').value = item.time || '';
         document.getElementById('edit-iti-end').value = item.end || ''; document.getElementById('edit-iti-note').value = item.note || '';
         document.getElementById('edit-iti-form-container').style.display = 'block'; window.scrollTo({ top: document.getElementById('edit-iti-form-container').offsetTop - 80, behavior: 'smooth' });
@@ -1018,6 +1001,12 @@
         const container = document.getElementById('luggage-list'); container.innerHTML = '';
         const filteredLuggage = appData.luggage.filter(l => (l.owner || '我的行李') === currentLugOwner);
 
+        // 💡 打勾往後排功能恢復
+        filteredLuggage.sort((a, b) => {
+            if (a.checked !== b.checked) return a.checked ? 1 : -1;
+            return 0;
+        });
+
         filteredLuggage.forEach((item) => {
             const noteStr = item.note ? `<p style="font-size:0.95rem; color:var(--text-muted); font-weight:700; margin-top:6px;">📝 ${item.note}</p>` : '';
             container.innerHTML += `
@@ -1031,7 +1020,7 @@
                         </div>
                     </div>
                     <div style="display:flex; gap:8px; margin-left:12px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end;">
-                        <button class="icon-btn" onclick="duplicateLug(${item.id})" style="width:36px; height:36px; font-size: 1.2rem;" title="複製先編輯">⧉</button>
+                        <button class="icon-btn" onclick="duplicateLug(${item.id})" style="width:36px; height:36px; font-size: 1.2rem;" title="複製">⧉</button>
                         <button class="icon-btn" onclick="editLug(${item.id})" style="width:36px; height:36px;">✎</button>
                         <button class="icon-btn danger" onclick="deleteLug(${item.id})" style="width:36px; height:36px;">✕</button>
                     </div>
@@ -1073,7 +1062,7 @@
 
     function duplicateLug(id) {
         const item = appData.luggage.find(i => i.id == id); if(!item) return;
-        openLugForm(); // 清除 ID，變成新增模式
+        openLugForm();
         document.getElementById('edit-lug-name').value = item.name || ''; document.getElementById('edit-lug-note').value = item.note || '';
         document.getElementById('edit-lug-form-container').style.display = 'block'; window.scrollTo({ top: document.getElementById('edit-lug-form-container').offsetTop - 80, behavior: 'smooth' });
     }
@@ -1135,7 +1124,7 @@
                         </div>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:10px; margin-left:12px;">
-                        <button class="icon-btn" onclick="duplicateShop(${item.id})" style="font-size: 1.2rem;" title="複製先編輯">⧉</button>
+                        <button class="icon-btn" onclick="duplicateShop(${item.id})" style="font-size: 1.2rem;" title="複製">⧉</button>
                         <button class="icon-btn" onclick="editShop(${item.id})">✎</button>
                         <button class="icon-btn danger" onclick="deleteShop(${item.id})">✕</button>
                     </div>
@@ -1175,7 +1164,7 @@
 
     function duplicateShop(id) {
         const item = appData.shopping.find(i => i.id == id); if(!item) return;
-        openAddForm(); // 進入新增模式
+        openAddForm(); 
         document.getElementById('edit-name').value = item.name || ''; document.getElementById('edit-qty').value = item.qty || '1';
         document.getElementById('edit-price').value = item.price_jpy || ''; document.getElementById('edit-shop-for').value = item.forWho || (appData.shopForCategories[0] || '自己買');
         document.getElementById('edit-shop').value = item.shop || ''; document.getElementById('edit-note').value = item.note || '';
@@ -1282,7 +1271,8 @@
         
         let totalF = 0, totalT = 0;
         
-        filtered.forEach(item => {
+        // 💡 記帳順序：新的在最上面
+        filtered.sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => {
             const price = Number(item.price_jpy) || 0; totalF += price;
             let twdFixed = item.twd_price; 
             if (twdFixed === undefined) { 
@@ -1344,7 +1334,7 @@
 
     function duplicateAcc(id) {
         const item = appData.accounting.find(i => i.id == id); if(!item) return;
-        openAccForm(); // 進入新增模式
+        openAccForm(); 
         document.getElementById('edit-acc-name').value = item.name || ''; document.getElementById('edit-acc-jpy').value = item.price_jpy || '';
         document.getElementById('edit-acc-cat').value = item.category || (appData.categories[0] || '其他');
         document.getElementById('edit-acc-pay').value = item.payMethod || 'card'; document.getElementById('edit-acc-forWho').value = item.forWho || (appData.shopForCategories[0] || '自己買');
